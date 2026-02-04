@@ -1825,6 +1825,163 @@ def show_analysis(df_analysis, df_abc):
         fast_turnover = df_turnover[df_turnover['재고회전일'] > 0].nsmallest(10, '재고회전일')[['SKU코드', '제품명', '재고회전일', 'ABC등급']]
         st.dataframe(fast_turnover, use_container_width=True)
 
+    st.markdown("---")
+
+    # 재고회전일 상세 분석
+    st.subheader("📊 재고회전일 상세 분석")
+
+    # 재고회전일 구간 분류
+    def classify_turnover_days(days):
+        if days <= 30:
+            return "0-30일 (우수)"
+        elif days <= 60:
+            return "31-60일 (양호)"
+        elif days <= 90:
+            return "61-90일 (보통)"
+        else:
+            return "90일 이상 (개선 필요)"
+
+    df_turnover['회전구간'] = df_turnover['재고회전일'].apply(classify_turnover_days)
+
+    # 구간별 통계
+    col1, col2 = st.columns(2)
+
+    with col1:
+        # 구간별 SKU 수
+        turnover_summary = df_turnover.groupby('회전구간').agg({
+            'SKU코드': 'count'
+        }).reset_index()
+        turnover_summary.columns = ['회전구간', 'SKU 수']
+
+        # 순서 정렬
+        order = ["0-30일 (우수)", "31-60일 (양호)", "61-90일 (보통)", "90일 이상 (개선 필요)"]
+        turnover_summary['회전구간'] = pd.Categorical(turnover_summary['회전구간'], categories=order, ordered=True)
+        turnover_summary = turnover_summary.sort_values('회전구간')
+
+        fig_turnover_bar = px.bar(
+            turnover_summary,
+            x='회전구간',
+            y='SKU 수',
+            title='재고회전일 구간별 SKU 수',
+            color='회전구간',
+            color_discrete_map={
+                "0-30일 (우수)": '#10b981',
+                "31-60일 (양호)": '#3b82f6',
+                "61-90일 (보통)": '#f59e0b',
+                "90일 이상 (개선 필요)": '#dc2626'
+            }
+        )
+        fig_turnover_bar.update_layout(
+            plot_bgcolor='#ffffff',
+            paper_bgcolor='#ffffff',
+            title_font=dict(size=15, color='#0f172a', family='Arial'),
+            xaxis=dict(showgrid=False, title_font=dict(color='#475569')),
+            yaxis=dict(showgrid=True, gridcolor='#e2e8f0', title_font=dict(color='#475569')),
+            font=dict(color='#475569'),
+            showlegend=False
+        )
+        fig_turnover_bar.update_traces(marker_line_width=0, textposition='outside')
+        st.plotly_chart(fig_turnover_bar, use_container_width=True)
+
+    with col2:
+        # 재고회전일 분포 히스토그램
+        df_turnover_filtered = df_turnover[df_turnover['재고회전일'] < 365]  # 365일 이상 제외
+
+        fig_turnover_hist = px.histogram(
+            df_turnover_filtered,
+            x='재고회전일',
+            nbins=20,
+            title='재고회전일 분포',
+            color_discrete_sequence=['#3b82f6']
+        )
+        fig_turnover_hist.update_layout(
+            plot_bgcolor='#ffffff',
+            paper_bgcolor='#ffffff',
+            title_font=dict(size=15, color='#0f172a', family='Arial'),
+            xaxis=dict(
+                showgrid=False,
+                title='재고회전일',
+                title_font=dict(color='#475569')
+            ),
+            yaxis=dict(
+                showgrid=True,
+                gridcolor='#e2e8f0',
+                title='SKU 수',
+                title_font=dict(color='#475569')
+            ),
+            font=dict(color='#475569')
+        )
+        st.plotly_chart(fig_turnover_hist, use_container_width=True)
+
+    # ABC 등급별 평균 재고회전일
+    st.write("**ABC 등급별 평균 재고회전일**")
+    abc_turnover = df_turnover.groupby('ABC등급').agg({
+        '재고회전일': 'mean',
+        'SKU코드': 'count'
+    }).reset_index()
+    abc_turnover.columns = ['ABC등급', '평균 재고회전일', 'SKU 수']
+    abc_turnover['평균 재고회전일'] = abc_turnover['평균 재고회전일'].round(1)
+
+    col1, col2, col3 = st.columns(3)
+    for idx, row in abc_turnover.iterrows():
+        with [col1, col2, col3][idx]:
+            color = {'A': '🔴', 'B': '🟡', 'C': '⚫'}.get(row['ABC등급'], '⚪')
+            st.metric(
+                label=f"{color} {row['ABC등급']}등급 평균",
+                value=f"{row['평균 재고회전일']:.1f}일",
+                delta=f"{row['SKU 수']}개 SKU"
+            )
+
+    st.markdown("---")
+
+    # 전체 상세 테이블
+    with st.expander("📋 전체 SKU 재고회전일 상세 내역", expanded=False):
+        st.write(f"총 {len(df_turnover)}개 SKU")
+
+        # 정렬 옵션
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            sort_option = st.selectbox(
+                "정렬 기준",
+                ["재고회전일 느림순", "재고회전일 빠름순", "ABC등급", "SKU코드"]
+            )
+
+        # 정렬 적용
+        if sort_option == "재고회전일 느림순":
+            df_display = df_turnover.sort_values('재고회전일', ascending=False)
+        elif sort_option == "재고회전일 빠름순":
+            df_display = df_turnover[df_turnover['재고회전일'] > 0].sort_values('재고회전일', ascending=True)
+        elif sort_option == "ABC등급":
+            df_display = df_turnover.sort_values(['ABC등급', '재고회전일'], ascending=[True, False])
+        else:
+            df_display = df_turnover.sort_values('SKU코드')
+
+        # 표시할 컬럼 선택
+        display_columns = ['SKU코드', '제품명', 'ABC등급', '회전구간', '현재고', '연간판매', '재고회전율', '재고회전일']
+        df_display = df_display[display_columns].copy()
+
+        # 숫자 포맷팅
+        df_display['현재고'] = df_display['현재고'].apply(lambda x: f"{x:,.0f}")
+        df_display['연간판매'] = df_display['연간판매'].apply(lambda x: f"{x:,.0f}")
+        df_display['재고회전율'] = df_display['재고회전율'].apply(lambda x: f"{x:.2f}")
+        df_display['재고회전일'] = df_display['재고회전일'].apply(lambda x: f"{x:.1f}")
+
+        # 테이블 표시
+        st.dataframe(
+            df_display,
+            use_container_width=True,
+            height=400
+        )
+
+        # 다운로드 버튼
+        csv = df_display.to_csv(index=False, encoding='utf-8-sig')
+        st.download_button(
+            label="📥 CSV 다운로드",
+            data=csv,
+            file_name=f"재고회전일_상세_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv"
+        )
+
 def show_order_status(df_analysis):
     """발주 현황 대시보드"""
 
