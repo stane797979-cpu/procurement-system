@@ -1402,36 +1402,44 @@ def show_procurement(df_filtered):
     st.subheader(f"발주 필요 품목: {len(need_order)}개")
 
     if len(need_order) > 0:
-        # 전체 선택/해제
-        col_select, col_clear = st.columns([1, 4])
-        with col_select:
-            # 전체 선택 버튼
-            if st.button("전체 선택", key="select_all_reorder_tab"):
-                all_skus = set(need_order['SKU코드'].tolist())
-                st.session_state.selected_items = all_skus
-                # 모든 체크박스 상태를 True로 설정
-                for enum_idx, (idx, row) in enumerate(need_order.iterrows()):
-                    sku_code = row['SKU코드']
-                    checkbox_key = f"sel_reorder_{sku_code}_{enum_idx}"
-                    st.session_state[checkbox_key] = True
-                # 전체 선택 플래그 설정
-                st.session_state.just_selected_all = True
+        # Fragment 함수 정의 - 전체 선택/해제 버튼을 Fragment로 감싸서 스크롤 방지
+        @st.fragment
+        def render_select_buttons(need_order_df):
+            # 전체 선택/해제
+            col_select, col_clear = st.columns([1, 4])
+            with col_select:
+                # 전체 선택 버튼
+                if st.button("전체 선택", key="select_all_reorder_tab"):
+                    all_skus = set(need_order_df['SKU코드'].tolist())
+                    st.session_state.selected_items = all_skus
+                    # 모든 체크박스 상태를 True로 설정
+                    for enum_idx, (idx, row) in enumerate(need_order_df.iterrows()):
+                        sku_code = row['SKU코드']
+                        checkbox_key = f"sel_reorder_{sku_code}_{enum_idx}"
+                        st.session_state[checkbox_key] = True
+                    # 전체 선택 플래그 설정
+                    st.session_state.just_selected_all = True
+                    st.rerun(scope="fragment")
 
-        with col_clear:
-            if st.button("선택 해제", key="clear_all_reorder_tab"):
-                st.session_state.selected_items = set()
-                # 모든 체크박스 상태를 False로 설정
-                for enum_idx, (idx, row) in enumerate(need_order.iterrows()):
-                    sku_code = row['SKU코드']
-                    checkbox_key = f"sel_reorder_{sku_code}_{enum_idx}"
-                    st.session_state[checkbox_key] = False
-                # 전체 해제 플래그 설정
-                st.session_state.just_cleared_all = True
+            with col_clear:
+                if st.button("선택 해제", key="clear_all_reorder_tab"):
+                    st.session_state.selected_items = set()
+                    # 모든 체크박스 상태를 False로 설정
+                    for enum_idx, (idx, row) in enumerate(need_order_df.iterrows()):
+                        sku_code = row['SKU코드']
+                        checkbox_key = f"sel_reorder_{sku_code}_{enum_idx}"
+                        st.session_state[checkbox_key] = False
+                    # 전체 해제 플래그 설정
+                    st.session_state.just_cleared_all = True
+                    st.rerun(scope="fragment")
 
-        # 선택된 품목 수 표시
-        selected_count = len(st.session_state.selected_items)
-        if selected_count > 0:
-            st.info(f"📦 선택된 품목: {selected_count}개")
+            # 선택된 품목 수 표시
+            selected_count = len(st.session_state.selected_items)
+            if selected_count > 0:
+                st.info(f"📦 선택된 품목: {selected_count}개")
+
+        # 버튼 렌더링
+        render_select_buttons(need_order)
 
         # Fragment 함수 정의 - 발주량 입력 부분만 rerun
         @st.fragment
@@ -1443,8 +1451,13 @@ def show_procurement(df_filtered):
             col_check, col_expand = st.columns([0.3, 4.7])
 
             with col_check:
-                # 체크박스 (expander 밖에 배치)
-                selected = st.checkbox("선택", value=is_checked, key=f"sel_reorder_{sku_code}_{enum_idx}", label_visibility="collapsed")
+                # 체크박스 키를 session_state와 동기화
+                checkbox_key = f"sel_reorder_{sku_code}_{enum_idx}"
+                if checkbox_key not in st.session_state:
+                    st.session_state[checkbox_key] = is_checked
+
+                # 체크박스 (value 파라미터 제거하여 충돌 방지)
+                selected = st.checkbox("선택", key=checkbox_key, label_visibility="collapsed")
 
                 # 전체 선택/해제 직후에는 개별 체크박스 로직 실행 안 함
                 skip_logic = st.session_state.get('just_selected_all', False) or st.session_state.get('just_cleared_all', False)
@@ -1695,6 +1708,86 @@ def show_analysis(df_analysis, df_abc):
     abc_display['비중%'] = abc_display['비중%'].apply(lambda x: f"{x:.2f}")
 
     st.dataframe(abc_display, use_container_width=True)
+
+    st.markdown("---")
+
+    # XYZ 분석
+    st.subheader("XYZ 등급별 분석 (수요 변동성)")
+
+    # XYZ 등급이 있는지 확인
+    if 'XYZ등급' in df_analysis.columns:
+        xyz_summary = df_analysis.groupby('XYZ등급').agg({
+            'SKU코드': 'count',
+            '현재고': 'sum'
+        }).reset_index()
+        xyz_summary.columns = ['XYZ등급', 'SKU 수', '총 재고량']
+        xyz_summary['비중%'] = xyz_summary['SKU 수'] / xyz_summary['SKU 수'].sum() * 100
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            fig_xyz1 = px.bar(
+                xyz_summary,
+                x='XYZ등급',
+                y='SKU 수',
+                title='XYZ 등급별 SKU 수',
+                color='XYZ등급',
+                color_discrete_map={'X': '#10b981', 'Y': '#f59e0b', 'Z': '#dc2626'}
+            )
+            fig_xyz1.update_layout(
+                plot_bgcolor='#ffffff',
+                paper_bgcolor='#ffffff',
+                title_font=dict(size=15, color='#0f172a', family='Arial'),
+                xaxis=dict(showgrid=False, title_font=dict(color='#475569')),
+                yaxis=dict(showgrid=True, gridcolor='#e2e8f0', title_font=dict(color='#475569')),
+                font=dict(color='#475569')
+            )
+            fig_xyz1.update_traces(marker_line_width=0, textposition='outside')
+            st.plotly_chart(fig_xyz1, use_container_width=True)
+
+        with col2:
+            fig_xyz2 = px.pie(
+                xyz_summary,
+                values='SKU 수',
+                names='XYZ등급',
+                title='XYZ 등급별 SKU 비중',
+                color='XYZ등급',
+                color_discrete_map={'X': '#10b981', 'Y': '#f59e0b', 'Z': '#dc2626'},
+                hole=0.3
+            )
+            fig_xyz2.update_layout(
+                plot_bgcolor='#ffffff',
+                paper_bgcolor='#ffffff',
+                title_font=dict(size=15, color='#0f172a', family='Arial'),
+                font=dict(color='#475569')
+            )
+            fig_xyz2.update_traces(
+                textfont=dict(size=12, color='white', family='Arial'),
+                marker=dict(line=dict(color='white', width=2))
+            )
+            st.plotly_chart(fig_xyz2, use_container_width=True)
+
+        # 테이블 표시용 포맷팅
+        xyz_display = xyz_summary.copy()
+        xyz_display['총 재고량'] = xyz_display['총 재고량'].apply(lambda x: f"{x:,.0f}")
+        xyz_display['비중%'] = xyz_display['비중%'].apply(lambda x: f"{x:.2f}")
+
+        st.dataframe(xyz_display, use_container_width=True)
+
+        # XYZ 등급 설명
+        with st.expander("📖 XYZ 등급이란?"):
+            st.markdown("""
+            **XYZ 분석**은 수요의 변동성(예측 가능성)을 기준으로 재고를 분류합니다:
+
+            - **X등급** 🟢: 변동성 낮음 (안정적 수요) - 예측이 쉬움
+            - **Y등급** 🟡: 변동성 중간 - 예측이 보통
+            - **Z등급** 🔴: 변동성 높음 (불안정 수요) - 예측이 어려움
+
+            💡 **활용 팁**:
+            - **AX** (높은 매출 + 안정적 수요): 최우선 재고 관리
+            - **AZ** (높은 매출 + 불안정 수요): 안전재고 확보 필요
+            - **CZ** (낮은 매출 + 불안정 수요): 최소 재고 유지
+            """)
 
     st.markdown("---")
 
