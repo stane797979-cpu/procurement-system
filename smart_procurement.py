@@ -1702,10 +1702,12 @@ def main():
     if file_option == "마지막 업로드 파일":
         if os.path.exists(CURRENT_PSI_FILE):
             excel_file = CURRENT_PSI_FILE
-            # 파일 수정 시간 확인
+            # 파일 수정 시간 및 경로 확인
+            abs_read_path = os.path.abspath(CURRENT_PSI_FILE)
             mtime = os.path.getmtime(CURRENT_PSI_FILE)
-            mtime_str = datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M')
-            st.sidebar.success(f"✅ 마지막 업로드 파일 사용 중\n📅 {mtime_str}")
+            mtime_str = datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M:%S')
+            file_size = os.path.getsize(CURRENT_PSI_FILE)
+            st.sidebar.success(f"✅ 마지막 업로드 파일 사용 중\n📅 {mtime_str}\n📁 {abs_read_path}\n📦 {file_size} bytes")
         else:
             st.sidebar.warning("⚠️ 업로드된 파일이 없습니다\n먼저 '파일 업로드'를 사용하세요")
 
@@ -1730,8 +1732,14 @@ def main():
         )
         if uploaded_file:
             # 업로드된 파일을 current_psi.xlsx로 저장
+            abs_save_path = os.path.abspath(CURRENT_PSI_FILE)
             with open(CURRENT_PSI_FILE, 'wb') as f:
                 f.write(uploaded_file.getvalue())
+
+            # 저장 확인
+            if os.path.exists(CURRENT_PSI_FILE):
+                file_size = os.path.getsize(CURRENT_PSI_FILE)
+                st.sidebar.info(f"📁 저장 위치: {abs_save_path}\n📦 크기: {file_size} bytes")
 
             # 업로드 완료 플래그 설정
             st.session_state.just_uploaded = True
