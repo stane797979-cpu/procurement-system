@@ -1834,61 +1834,14 @@ def main():
             # PSI 파일 경로 저장 (발주 기록용)
             st.session_state.psi_file_path = excel_file
 
-            # 디버그 정보는 제거됨 (사용자 요청)
-
-                    # 시트 이름 표시 (모든 시트)
-                    if 'sheet_names' in dashboard_data:
-                        all_sheets = ', '.join(dashboard_data['sheet_names'])
-                        st.write(f"📋 **Excel 시트 ({len(dashboard_data['sheet_names'])}개):**")
-                        st.write(f"   {all_sheets}")
-                        st.write(f"   {'✅' if '재고분석' in dashboard_data['sheet_names'] else '❌'} 재고분석 시트")
-
-                    # 상세 디버그 정보
-                    debug_samples = dashboard_data.get('debug_samples', {})
-                    if debug_samples:
-                        st.write("---")
-                        st.write("**🔍 상세 디버깅:**")
-
-                        # 재고분석 시트 정보
-                        if 'sheet_check' in debug_samples:
-                            st.write(f"- 시트 체크: {debug_samples['sheet_check']}")
-                        if '재고분석_info' in debug_samples:
-                            st.write(f"- 재고분석 시트 정보: {debug_samples['재고분석_info']}")
-                        if 'first_3_rows_raw' in debug_samples:
-                            st.write("- 재고분석 첫 3행:")
-                            for row in debug_samples['first_3_rows_raw']:
-                                st.write(f"  {row}")
-                        if 'calc_data_count' in debug_samples:
-                            st.write(f"- 수집된 데이터: {debug_samples['calc_data_count']}개")
-
-                        if 'nonzero_stock_count' in debug_samples:
-                            st.write(f"- 재고 있는 SKU: {debug_samples['nonzero_stock_count']}개")
-                        if 'nonzero_price_count' in debug_samples:
-                            st.write(f"- 가격 있는 SKU: {debug_samples['nonzero_price_count']}개")
-                        if 'total_stock_sum' in debug_samples:
-                            st.write(f"- 총 재고수량: {debug_samples['total_stock_sum']:,.0f}개")
-
-                        if 'inventory_sample' in debug_samples and debug_samples['inventory_sample']:
-                            st.write("**재고 샘플 (상위 3개):**")
-                            for item in debug_samples['inventory_sample']:
-                                st.write(f"  {item}")
-
-                        if 'abc_sample' in debug_samples and debug_samples['abc_sample']:
-                            st.write("**매입원가 샘플 (상위 3개):**")
-                            for item in debug_samples['abc_sample']:
-                                st.write(f"  {item}")
-
-                        if 'merged_after' in debug_samples and debug_samples['merged_after']:
-                            st.write("**병합 후 샘플 (상위 3개):**")
-                            for item in debug_samples['merged_after']:
-                                st.write(f"  {item}")
-
-                    # 상위 5개 SKU 재고금액 표시
-                    if 'debug_top5' in dashboard_data and dashboard_data['debug_top5']:
-                        st.write("---")
-                        st.write("**📦 재고금액 상위 5개 SKU:**")
-                        for item in dashboard_data['debug_top5']:
-                            st.write(f"- {item['SKU코드']}: {item['현재고']:.0f}개 × {item['매입원가']:,.0f}원 = {item['재고금액']:,.0f}원")
+            # 시트 정보만 간단히 표시
+            if dashboard_data and 'sheet_names' in dashboard_data:
+                with st.sidebar.expander("📋 Excel 시트 정보", expanded=False):
+                    all_sheets = ', '.join(dashboard_data['sheet_names'])
+                    st.write(f"**총 {len(dashboard_data['sheet_names'])}개 시트:**")
+                    st.write(f"{all_sheets}")
+                    st.write(f"")
+                    st.write(f"{'✅' if '재고분석' in dashboard_data['sheet_names'] else '❌'} 재고분석 시트")
     else:
         dashboard_data, df_inventory, df_safety, df_abc, df_psi = None, None, None, None, None
 
