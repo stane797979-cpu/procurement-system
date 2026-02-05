@@ -1600,10 +1600,15 @@ def main():
             st.session_state.current_page = "대시보드"
 
         # 파일 선택
+        CURRENT_PSI_FILE_CHECK = "current_psi.xlsx"
         with st.expander("☁️ 데이터 소스 선택", expanded=True):
+            # current_psi.xlsx 파일이 있으면 "마지막 업로드 파일"을 기본값으로
+            default_index = 0 if os.path.exists(CURRENT_PSI_FILE_CHECK) else 1
+
             file_option = st.radio(
                 "파일 옵션:",
                 ["마지막 업로드 파일", "파일 업로드"],
+                index=default_index,
                 label_visibility="collapsed",
                 horizontal=False
             )
@@ -1683,7 +1688,7 @@ def main():
                         st.rerun()
             else:
                 # Linux/Streamlit Cloud - 수식 계산 건너뛰기
-                st.sidebar.success(f"✅ {uploaded_file.name} 업로드 완료!")
+                st.sidebar.success(f"✅ {uploaded_file.name} 업로드 완료! 자동으로 데이터를 로드합니다...")
                 st.rerun()
 
             excel_file = CURRENT_PSI_FILE
