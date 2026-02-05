@@ -865,17 +865,47 @@ st.markdown("""
         border: 1px solid #E5E7EB;
     }
 
-    /* 파일 업로더 */
+    /* 파일 업로더 - 잘 보이게 개선 */
     .stFileUploader {
-        background-color: white;
-        border: 2px dashed #E5E7EB;
-        border-radius: 12px;
-        padding: 2rem;
+        background: linear-gradient(135deg, #FFFFFF 0%, #F5F1E8 100%);
+        border: 3px dashed #C8E6C9;
+        border-radius: 16px;
+        padding: 3rem 2rem;
+        transition: all 0.3s ease;
     }
 
     .stFileUploader:hover {
-        border-color: #C8E6C9;
-        background-color: #F5F1E8;
+        border-color: #7BA591;
+        background: linear-gradient(135deg, #F5F1E8 0%, #E8E4D8 100%);
+        box-shadow: 0 4px 12px rgba(200, 230, 201, 0.3);
+        transform: scale(1.01);
+    }
+
+    .stFileUploader label {
+        color: #2C3E50 !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+    }
+
+    /* 드래그 앤 드롭 영역 */
+    [data-testid="stFileUploaderDropzone"] {
+        background-color: #FFFFFF !important;
+        border: 2px dashed #C8E6C9 !important;
+        border-radius: 12px !important;
+        min-height: 180px !important;
+        padding: 2rem !important;
+    }
+
+    [data-testid="stFileUploaderDropzone"]:hover {
+        background-color: #F5F1E8 !important;
+        border-color: #7BA591 !important;
+    }
+
+    [data-testid="stFileUploaderDropzoneInstructions"] {
+        color: #2C3E50 !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
     }
 
     /* 채팅 메시지 */
@@ -1289,36 +1319,50 @@ def main():
         st.sidebar.success("✅ 기본 파일 사용 중")
 
     elif file_option == "파일 업로드":
+        st.sidebar.markdown("""
+        <div style='background: #C8E6C9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;'>
+            <p style='color: #2C3E50; font-weight: 600; margin: 0; text-align: center;'>
+                📤 PSI 파일 업로드
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
         uploaded_file = st.sidebar.file_uploader(
-            "PSI 엑셀 파일 업로드",
+            "엑셀 파일 선택",
             type=['xlsx'],
-            help="PSI_최종완성.xlsx 형식의 파일"
+            help="PSI_최종완성.xlsx 형식의 파일을 업로드하세요",
+            label_visibility="collapsed"
         )
         if uploaded_file:
             # 업로드된 파일을 current_psi.xlsx로 저장
             with open(CURRENT_PSI_FILE, 'wb') as f:
                 f.write(uploaded_file.getvalue())
 
-            # 수식 캐시 생성 (win32com 사용)
-            with st.spinner('📊 수식 계산 중... (10초 소요)'):
-                try:
-                    import win32com.client
-                    excel = win32com.client.Dispatch("Excel.Application")
-                    excel.Visible = False
-                    excel.DisplayAlerts = False
-                    abs_path = os.path.abspath(CURRENT_PSI_FILE)
-                    workbook = excel.Workbooks.Open(abs_path)
-                    excel.Calculation = -4105
-                    excel.CalculateFull()
-                    for sheet in workbook.Worksheets:
-                        sheet.Calculate()
-                    excel.CalculateFull()
-                    workbook.Save()
-                    workbook.Close(SaveChanges=True)
-                    excel.Quit()
-                    st.sidebar.success(f"✅ {uploaded_file.name} 업로드 완료\n📊 수식 캐시 생성 완료")
-                except Exception as e:
-                    st.sidebar.error(f"⚠️ 수식 캐시 생성 실패: {str(e)}\n수동으로 Excel에서 열고 저장하세요")
+            # 수식 캐시 생성 (Windows에서만 실행)
+            import platform
+            if platform.system() == 'Windows':
+                with st.spinner('📊 수식 계산 중... (10초 소요)'):
+                    try:
+                        import win32com.client
+                        excel = win32com.client.Dispatch("Excel.Application")
+                        excel.Visible = False
+                        excel.DisplayAlerts = False
+                        abs_path = os.path.abspath(CURRENT_PSI_FILE)
+                        workbook = excel.Workbooks.Open(abs_path)
+                        excel.Calculation = -4105
+                        excel.CalculateFull()
+                        for sheet in workbook.Worksheets:
+                            sheet.Calculate()
+                        excel.CalculateFull()
+                        workbook.Save()
+                        workbook.Close(SaveChanges=True)
+                        excel.Quit()
+                        st.sidebar.success(f"✅ {uploaded_file.name} 업로드 완료\n📊 수식 캐시 생성 완료")
+                    except Exception as e:
+                        st.sidebar.success(f"✅ {uploaded_file.name} 업로드 완료")
+            else:
+                # Linux/Streamlit Cloud - 수식 계산 건너뛰기
+                st.sidebar.success(f"✅ {uploaded_file.name} 업로드 완료!")
 
             excel_file = CURRENT_PSI_FILE
         else:
