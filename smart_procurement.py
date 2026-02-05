@@ -1964,40 +1964,46 @@ def main():
         (df_analysis['재고상태'].isin(status_filter))
     ]
 
-    # 탭 구성
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
-        "📊 대시보드",
-        "📦 발주 관리",
-        "📋 발주 현황",
-        "🎯 KPI 관리",
-        "📈 분석",
-        "🎲 시뮬레이션",
-        "⚡ 자동 발주",
-        "⚙️ 설정"
-    ])
+    # 사이드바에 페이지 선택 추가
+    st.sidebar.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+    st.sidebar.markdown("""
+    <div style='color: #94A3B8; font-size: 0.75rem; font-weight: 600;
+                text-transform: uppercase; letter-spacing: 1px; margin: 0 0 0.5rem 0.5rem;'>
+        Navigation
+    </div>
+    """, unsafe_allow_html=True)
 
-    with tab1:
+    # 페이지 선택 (session state 기반으로 선택 유지)
+    page_options = ["📊 대시보드", "📦 발주 관리", "📋 발주 현황", "🎯 KPI 관리",
+                    "📈 분석", "🎲 시뮬레이션", "⚡ 자동 발주", "⚙️ 설정"]
+
+    selected_page = st.sidebar.radio(
+        "페이지 선택",
+        page_options,
+        index=page_options.index(st.session_state.current_page) if st.session_state.current_page in page_options else 0,
+        key="page_selector",
+        label_visibility="collapsed"
+    )
+
+    # 선택된 페이지를 session state에 저장
+    st.session_state.current_page = selected_page
+
+    # 선택된 페이지에 따라 콘텐츠 표시
+    if selected_page == "📊 대시보드":
         show_dashboard(dashboard_data, df_analysis)
-
-    with tab2:
+    elif selected_page == "📦 발주 관리":
         show_procurement(df_filtered)
-
-    with tab3:
+    elif selected_page == "📋 발주 현황":
         show_order_status(df_analysis)
-
-    with tab4:
+    elif selected_page == "🎯 KPI 관리":
         show_kpi_management(df_analysis, df_psi, df_abc)
-
-    with tab5:
+    elif selected_page == "📈 분석":
         show_analysis(df_analysis, df_abc)
-
-    with tab6:
+    elif selected_page == "🎲 시뮬레이션":
         show_simulation(df_analysis, df_psi)
-
-    with tab7:
+    elif selected_page == "⚡ 자동 발주":
         show_auto_orders(df_analysis)
-
-    with tab8:
+    elif selected_page == "⚙️ 설정":
         show_settings()
 
 def show_dashboard(dashboard_data, df_analysis):
@@ -2046,12 +2052,14 @@ def show_dashboard(dashboard_data, df_analysis):
         )
 
     with col3:
-        # 평균 재고 소진일 (신규 추가)
+        # 평균 재고 소진일 (NaN 처리 추가)
         avg_coverage = df_analysis[df_analysis['재고소진일'] < 999]['재고소진일'].mean()
+        if pd.isna(avg_coverage) or avg_coverage == 0:
+            avg_coverage = 0
         st.metric(
             label="📅 평균 재고일",
-            value=f"{avg_coverage:.0f}일",
-            delta="충분" if avg_coverage >= 14 else "부족",
+            value=f"{avg_coverage:.0f}일" if avg_coverage > 0 else "N/A",
+            delta="충분" if avg_coverage >= 14 else "부족" if avg_coverage > 0 else None,
             delta_color="normal" if avg_coverage >= 14 else "inverse"
         )
 
