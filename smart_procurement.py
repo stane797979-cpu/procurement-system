@@ -1184,6 +1184,7 @@ def load_psi_data(file_path):
     }
 
     # 대시보드 시트가 있으면 값 읽기
+    debug_info = []
     if '대시보드' in wb.sheetnames:
         ws_dashboard = wb['대시보드']
         try:
@@ -1192,6 +1193,10 @@ def load_psi_data(file_path):
             avg_days_val = ws_dashboard.cell(8, 3).value
             shortage_val = ws_dashboard.cell(9, 3).value
             reorder_val = ws_dashboard.cell(10, 3).value
+
+            debug_info.append(f"C6(SKU): {total_sku_val}")
+            debug_info.append(f"C7(금액): {total_value_val}")
+            debug_info.append(f"C8(일수): {avg_days_val}")
 
             if total_sku_val:
                 dashboard_data['total_sku'] = int(total_sku_val)
@@ -1204,6 +1209,7 @@ def load_psi_data(file_path):
             if reorder_val:
                 dashboard_data['reorder'] = int(reorder_val)
         except Exception as e:
+            debug_info.append(f"오류: {e}")
             print(f"대시보드 값 읽기 오류: {e}")
             pass
 
@@ -1673,6 +1679,15 @@ def main():
             dashboard_data, df_inventory, df_safety, df_abc, df_psi = load_psi_data(excel_file)
             # PSI 파일 경로 저장 (발주 기록용)
             st.session_state.psi_file_path = excel_file
+
+            # 디버그 정보 표시
+            if dashboard_data:
+                with st.sidebar.expander("📊 데이터 로딩 정보", expanded=False):
+                    st.write(f"✅ SKU 수: {dashboard_data.get('total_sku', 0)}개")
+                    st.write(f"✅ 재고금액: {dashboard_data.get('total_value', 0):,.0f}원")
+                    st.write(f"✅ 평균일: {dashboard_data.get('avg_turnover_days', 0):.1f}일")
+                    if len(df_abc) > 0:
+                        st.write(f"✅ ABC 데이터: {len(df_abc)}행")
     else:
         dashboard_data, df_inventory, df_safety, df_abc, df_psi = None, None, None, None, None
 
