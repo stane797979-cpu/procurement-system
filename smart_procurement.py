@@ -1376,8 +1376,27 @@ def load_psi_data(file_path):
 
     try:
         # 방법 1: 재고분석 시트에서 직접 읽기 (현재고 + 매입원가 모두 있음!)
+        debug_samples['sheet_check'] = {'재고분석_exists': '재고분석' in wb.sheetnames}
+
         if '재고분석' in wb.sheetnames:
             ws_inv_analysis = wb['재고분석']
+            debug_samples['재고분석_info'] = {
+                'max_row': ws_inv_analysis.max_row,
+                'max_col': ws_inv_analysis.max_column,
+                'header_col8': ws_inv_analysis.cell(1, 8).value,
+                'header_col17': ws_inv_analysis.cell(1, 17).value
+            }
+
+            # 첫 3개 행의 실제 값 확인
+            debug_samples['first_3_rows_raw'] = []
+            for test_row in range(2, 5):
+                debug_samples['first_3_rows_raw'].append({
+                    'row': test_row,
+                    'sku_col3': ws_inv_analysis.cell(test_row, 3).value,
+                    'stock_col8': ws_inv_analysis.cell(test_row, 8).value,
+                    'price_col17': ws_inv_analysis.cell(test_row, 17).value
+                })
+
             inventory_calc_data = []
 
             for row in range(2, min(ws_inv_analysis.max_row + 1, 410)):
@@ -1392,6 +1411,8 @@ def load_psi_data(file_path):
                         '매입원가': unit_price,
                         '재고금액': float(current_stock) * float(unit_price) if current_stock and unit_price else 0
                     })
+
+            debug_samples['calc_data_count'] = len(inventory_calc_data)
 
             if inventory_calc_data:
                 df_inv_calc = pd.DataFrame(inventory_calc_data)
