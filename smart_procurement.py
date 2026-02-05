@@ -1601,16 +1601,26 @@ def main():
 
         # 파일 선택
         CURRENT_PSI_FILE_CHECK = "current_psi.xlsx"
+
+        # 파일 업로드 직후 강제로 "마지막 업로드 파일" 모드로 전환
+        if 'just_uploaded' not in st.session_state:
+            st.session_state.just_uploaded = False
+
         with st.expander("☁️ 데이터 소스 선택", expanded=True):
-            # current_psi.xlsx 파일이 있으면 "마지막 업로드 파일"을 기본값으로
-            default_index = 0 if os.path.exists(CURRENT_PSI_FILE_CHECK) else 1
+            # 방금 업로드했거나 파일이 있으면 "마지막 업로드 파일"을 기본값으로
+            if st.session_state.just_uploaded or os.path.exists(CURRENT_PSI_FILE_CHECK):
+                default_index = 0
+                st.session_state.just_uploaded = False  # 플래그 리셋
+            else:
+                default_index = 1
 
             file_option = st.radio(
                 "파일 옵션:",
                 ["마지막 업로드 파일", "파일 업로드"],
                 index=default_index,
                 label_visibility="collapsed",
-                horizontal=False
+                horizontal=False,
+                key='file_option_radio'
             )
 
     # 헤더
@@ -1662,6 +1672,9 @@ def main():
             with open(CURRENT_PSI_FILE, 'wb') as f:
                 f.write(uploaded_file.getvalue())
 
+            # 업로드 완료 플래그 설정
+            st.session_state.just_uploaded = True
+
             # 수식 캐시 생성 (Windows에서만 실행)
             import platform
             if platform.system() == 'Windows':
@@ -1682,13 +1695,15 @@ def main():
                         workbook.Close(SaveChanges=True)
                         excel.Quit()
                         st.sidebar.success(f"✅ {uploaded_file.name} 업로드 완료\n📊 수식 캐시 생성 완료")
-                        st.rerun()
                     except Exception as e:
                         st.sidebar.success(f"✅ {uploaded_file.name} 업로드 완료")
-                        st.rerun()
+                finally:
+                    st.rerun()
             else:
                 # Linux/Streamlit Cloud - 수식 계산 건너뛰기
-                st.sidebar.success(f"✅ {uploaded_file.name} 업로드 완료! 자동으로 데이터를 로드합니다...")
+                st.sidebar.success(f"✅ {uploaded_file.name} 업로드 완료!")
+                import time
+                time.sleep(0.1)  # 파일 쓰기 완료 대기
                 st.rerun()
 
             excel_file = CURRENT_PSI_FILE
