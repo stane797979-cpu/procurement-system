@@ -1363,15 +1363,12 @@ def load_psi_data(file_path):
     # 대시보드 데이터를 실제 데이터로부터 항상 계산
     # Streamlit Cloud에서는 Excel 수식이 계산되지 않으므로 직접 계산 필수
     total_value = 0
+    calc_method = "없음"
 
     try:
-        if len(df_abc) > 0:
-            # 방법 1 (권장): ABC 테이블의 연간COGS 사용 (가장 신뢰할 수 있는 데이터)
-            if '연간COGS' in df_abc.columns:
-                total_value = pd.to_numeric(df_abc['연간COGS'], errors='coerce').fillna(0).sum()
-
-            # 방법 2: 연간COGS가 0이면 매입원가 × 현재고로 계산
-            if total_value == 0 and len(df_inventory) > 0 and '매입원가' in df_abc.columns:
+        if len(df_inventory) > 0 and len(df_abc) > 0:
+            # 재고금액 = 현재고 × 매입원가 (올바른 계산 방법)
+            if '매입원가' in df_abc.columns:
                 df_temp = pd.merge(
                     df_inventory[['SKU코드', '현재고']],
                     df_abc[['SKU코드', '매입원가']],
@@ -1382,23 +1379,26 @@ def load_psi_data(file_path):
                 df_temp['매입원가'] = pd.to_numeric(df_temp['매입원가'], errors='coerce').fillna(0)
                 df_temp['재고금액'] = df_temp['현재고'] * df_temp['매입원가']
                 total_value = df_temp['재고금액'].sum()
+                calc_method = "현재고×매입원가"
+
+                # 디버그: 상위 5개 SKU 정보 저장
+                df_temp_sorted = df_temp.nlargest(5, '재고금액')
+                dashboard_data['debug_top5'] = df_temp_sorted[['SKU코드', '현재고', '매입원가', '재고금액']].to_dict('records')
     except Exception as e:
         # 에러 발생시 기본값 0 사용
         total_value = 0
-        print(f"재고금액 계산 오류: {e}")
+        calc_method = f"에러: {str(e)}"
+
+    # 계산 방법 저장 (디버깅용)
+    dashboard_data['calc_method'] = calc_method
 
     # dashboard_data가 비어있거나 0이면 계산한 값으로 업데이트
     # Streamlit Cloud에서는 Excel 수식이 계산 안 되므로 항상 계산 값 사용
     if dashboard_data['total_sku'] == 0 or dashboard_data['total_sku'] is None:
         dashboard_data['total_sku'] = len(df_inventory)
 
-    if dashboard_data['total_value'] == 0 or dashboard_data['total_value'] is None:
-        if total_value > 0:
-            dashboard_data['total_value'] = total_value
-        else:
-            # 최후의 수단: 연간판매 데이터라도 사용
-            if len(df_abc) > 0 and '연간판매' in df_abc.columns:
-                dashboard_data['total_value'] = pd.to_numeric(df_abc['연간판매'], errors='coerce').fillna(0).sum() * 0.7  # 추정: 판매의 70%가 재고
+    # 계산한 값으로 항상 덮어쓰기 (Excel 수식 값 무시)
+    dashboard_data['total_value'] = total_value
 
     return dashboard_data, df_inventory, df_safety, df_abc, df_psi
 
@@ -1682,12 +1682,21 @@ def main():
 
             # 디버그 정보 표시
             if dashboard_data:
-                with st.sidebar.expander("📊 데이터 로딩 정보", expanded=False):
+                with st.sidebar.expander("📊 데이터 로딩 정보", expanded=True):
                     st.write(f"✅ SKU 수: {dashboard_data.get('total_sku', 0)}개")
                     st.write(f"✅ 재고금액: {dashboard_data.get('total_value', 0):,.0f}원")
                     st.write(f"✅ 평균일: {dashboard_data.get('avg_turnover_days', 0):.1f}일")
+                    st.write(f"✅ 계산방법: {dashboard_data.get('calc_method', '없음')}")
                     if len(df_abc) > 0:
                         st.write(f"✅ ABC 데이터: {len(df_abc)}행")
+                    if len(df_inventory) > 0:
+                        st.write(f"✅ 재고 데이터: {len(df_inventory)}행")
+
+                    # 상위 5개 SKU 재고금액 표시
+                    if 'debug_top5' in dashboard_data and dashboard_data['debug_top5']:
+                        st.write("**📦 재고금액 상위 5개 SKU:**")
+                        for item in dashboard_data['debug_top5']:
+                            st.write(f"- {item['SKU코드']}: {item['현재고']:.0f}개 × {item['매입원가']:,.0f}원 = {item['재고금액']:,.0f}원")
     else:
         dashboard_data, df_inventory, df_safety, df_abc, df_psi = None, None, None, None, None
 
