@@ -1236,9 +1236,9 @@ def load_psi_data(file_path):
     for row in range(4, min(ws_psi_temp.max_row + 1, 412)):
         sku = ws_psi_temp.cell(row, 1).value
         if sku:
-            # I열 (9번째 컬럼)에 입고가 있을 수 있음, 현재고는 계산 필요
-            # 일단 기초재고(7열) 사용
-            stock = ws_psi_temp.cell(row, 7).value or 0
+            # 열 7은 수식이므로 Linux에서 None 반환
+            # 열 8 (H)에서 실제 데이터 읽기 (202512월 재고)
+            stock = ws_psi_temp.cell(row, 8).value or 0
             psi_stock[sku] = stock
 
     # ABC-XYZ분석 시트에서 추가 정보 가져오기
@@ -1375,7 +1375,47 @@ def load_psi_data(file_path):
     debug_samples = {}
 
     try:
-        if len(df_inventory) > 0 and len(df_abc) > 0:
+        # 방법 1: 재고분석 시트에서 직접 읽기 (현재고 + 매입원가 모두 있음!)
+        if '재고분석' in wb.sheetnames:
+            ws_inv_analysis = wb['재고분석']
+            inventory_calc_data = []
+
+            for row in range(2, min(ws_inv_analysis.max_row + 1, 410)):
+                sku = ws_inv_analysis.cell(row, 3).value  # Column 3: SKU코드
+                if sku:
+                    current_stock = ws_inv_analysis.cell(row, 8).value or 0  # Column 8: 현재고
+                    unit_price = ws_inv_analysis.cell(row, 17).value or 0    # Column 17: 매입원가
+
+                    inventory_calc_data.append({
+                        'SKU코드': sku,
+                        '현재고': current_stock,
+                        '매입원가': unit_price,
+                        '재고금액': float(current_stock) * float(unit_price) if current_stock and unit_price else 0
+                    })
+
+            if inventory_calc_data:
+                df_inv_calc = pd.DataFrame(inventory_calc_data)
+                df_inv_calc['현재고'] = pd.to_numeric(df_inv_calc['현재고'], errors='coerce').fillna(0)
+                df_inv_calc['매입원가'] = pd.to_numeric(df_inv_calc['매입원가'], errors='coerce').fillna(0)
+                df_inv_calc['재고금액'] = df_inv_calc['현재고'] * df_inv_calc['매입원가']
+
+                total_value = df_inv_calc['재고금액'].sum()
+                calc_method = "재고분석시트(열8×열17)"
+
+                # 디버그 정보
+                debug_samples['inventory_sample'] = df_inv_calc.head(3)[['SKU코드', '현재고']].to_dict('records')
+                debug_samples['abc_sample'] = df_inv_calc.head(3)[['SKU코드', '매입원가']].to_dict('records')
+                debug_samples['merged_after'] = df_inv_calc.head(3).to_dict('records')
+                debug_samples['total_stock_sum'] = float(df_inv_calc['현재고'].sum())
+                debug_samples['nonzero_stock_count'] = int((df_inv_calc['현재고'] > 0).sum())
+                debug_samples['nonzero_price_count'] = int((df_inv_calc['매입원가'] > 0).sum())
+
+                # 상위 5개
+                df_temp_sorted = df_inv_calc.nlargest(5, '재고금액')
+                dashboard_data['debug_top5'] = df_temp_sorted[['SKU코드', '현재고', '매입원가', '재고금액']].to_dict('records')
+
+        # 방법 2: 원래 방법 (재고분석 시트가 없거나 실패한 경우)
+        if total_value == 0 and len(df_inventory) > 0 and len(df_abc) > 0:
             # 디버그: 원본 데이터 샘플 확인
             debug_samples['inventory_columns'] = list(df_inventory.columns)
             debug_samples['abc_columns'] = list(df_abc.columns)
