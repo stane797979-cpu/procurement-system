@@ -20,17 +20,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 밝은 회색 톤 CSS
+# 모노크롬 스타일 CSS (Black, White, Gray)
 st.markdown("""
 <style>
-    /* 전체 배경 - 중간 회색 (눈이 편한) */
+    /* 전체 배경 - 순수 검정 */
     .stApp {
-        background-color: #d1d5db !important;
+        background-color: #0a0a0a !important;
         overflow-y: auto !important;
     }
 
     .main {
-        background-color: #d1d5db !important;
+        background-color: #0a0a0a !important;
         overflow-y: auto !important;
     }
 
@@ -49,72 +49,72 @@ st.markdown("""
 
     /* 메트릭 카드 */
     .metric-card {
-        background: #ffffff;
+        background: #1a1a1a;
         padding: 1.5rem;
         border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        border: 1px solid #d1d5db;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        border: 1px solid #3a3a3a;
     }
 
-    /* 긴급 알림 */
+    /* 긴급 알림 - 다크 그레이 */
     .alert-danger {
-        background-color: #dc2626;
-        color: #000000 !important;
+        background-color: #2a2a2a;
+        color: #ffffff !important;
         padding: 1.25rem;
         border-radius: 8px;
-        border-left: 4px solid #991b1b;
+        border-left: 4px solid #ffffff;
         margin: 1rem 0;
     }
 
     .alert-danger * {
-        color: #000000 !important;
+        color: #ffffff !important;
     }
 
     .alert-danger div {
         background-color: transparent !important;
-        color: #000000 !important;
+        color: #ffffff !important;
     }
 
     .alert-danger h4,
     .alert-danger strong,
     .alert-danger span,
     .alert-danger p {
-        color: #000000 !important;
+        color: #ffffff !important;
     }
 
-    /* 경고 알림 */
+    /* 경고 알림 - 미디엄 그레이 */
     .alert-warning {
-        background-color: #f59e0b;
-        color: #000000 !important;
+        background-color: #3a3a3a;
+        color: #ffffff !important;
         padding: 1.25rem;
         border-radius: 8px;
-        border-left: 4px solid #d97706;
+        border-left: 4px solid #8a8a8a;
         margin: 1rem 0;
     }
 
     .alert-warning * {
-        color: #1f2937 !important;
+        color: #ffffff !important;
     }
 
     .alert-warning h4 {
-        color: #1e293b !important;
+        color: #ffffff !important;
     }
 
     .alert-warning strong {
-        color: #0f172a !important;
+        color: #ffffff !important;
     }
 
     .alert-warning div {
         background-color: transparent !important;
     }
 
-    /* 성공 알림 */
+    /* 성공 알림 - 라이트 그레이 */
     .alert-success {
-        background-color: #059669;
+        background-color: #4a4a4a;
         color: #ffffff !important;
         padding: 1.25rem;
         border-radius: 8px;
-        border-left: 4px solid #047857;
+        border-left: 4px solid #aaaaaa;
         margin: 1rem 0;
     }
 
@@ -126,147 +126,153 @@ st.markdown("""
         background-color: transparent !important;
     }
 
-    /* 데이터 테이블 */
+    /* 데이터 테이블 - 다크 */
     .dataframe {
-        background-color: #ffffff !important;
+        background-color: #1a1a1a !important;
         border-radius: 8px;
-        border: 1px solid #d1d5db;
+        border: 1px solid #3a3a3a;
     }
 
     .dataframe thead tr th {
-        background-color: #f3f4f6 !important;
-        color: #1f2937 !important;
+        background-color: #2a2a2a !important;
+        color: #ffffff !important;
         font-weight: 700 !important;
         padding: 0.75rem !important;
     }
 
     .dataframe tbody tr td {
-        color: #374151 !important;
+        color: #e0e0e0 !important;
         padding: 0.5rem !important;
     }
 
     /* 테이블 헤더 */
     table thead {
-        background-color: #f3f4f6 !important;
+        background-color: #2a2a2a !important;
     }
 
     table thead th {
-        background-color: #f3f4f6 !important;
-        color: #1f2937 !important;
+        background-color: #2a2a2a !important;
+        color: #ffffff !important;
         font-weight: 700 !important;
     }
 
     table tbody td {
-        color: #374151 !important;
+        color: #e0e0e0 !important;
     }
 
     /* Streamlit 데이터프레임 스타일 */
     [data-testid="stDataFrame"] {
-        background-color: #ffffff !important;
+        background-color: #1a1a1a !important;
     }
 
     [data-testid="stDataFrame"] * {
-        color: #1f2937 !important;
+        color: #e0e0e0 !important;
     }
 
     /* Streamlit 최신 데이터프레임 스타일 */
     [data-testid="stDataFrame"] div[role="grid"] {
-        background-color: #ffffff !important;
+        background-color: #1a1a1a !important;
     }
 
     [data-testid="stDataFrame"] div[role="row"] {
-        background-color: #ffffff !important;
+        background-color: #1a1a1a !important;
     }
 
     [data-testid="stDataFrame"] div[role="columnheader"] {
-        background-color: #f3f4f6 !important;
-        color: #1f2937 !important;
+        background-color: #2a2a2a !important;
+        color: #ffffff !important;
         font-weight: 700 !important;
     }
 
     [data-testid="stDataFrame"] div[role="gridcell"] {
-        background-color: #ffffff !important;
-        color: #1f2937 !important;
+        background-color: #1a1a1a !important;
+        color: #e0e0e0 !important;
     }
 
-    /* 짝수/홀수 행 스타일 */
+    /* 짝수/홀수 행 스타일 - 스트라이프 */
     [data-testid="stDataFrame"] div[role="row"]:nth-child(even) div[role="gridcell"] {
-        background-color: #f9fafb !important;
-        color: #1f2937 !important;
+        background-color: #151515 !important;
+        color: #e0e0e0 !important;
     }
 
     [data-testid="stDataFrame"] div[role="row"]:nth-child(odd) div[role="gridcell"] {
-        background-color: #ffffff !important;
-        color: #1f2937 !important;
+        background-color: #1a1a1a !important;
+        color: #e0e0e0 !important;
     }
 
-    /* 버튼 */
+    /* 버튼 - 그레이 */
     .stButton>button {
         border-radius: 6px;
         font-weight: 600;
         padding: 0.625rem 1.25rem;
-        background-color: #6b7280 !important;
+        background-color: #3a3a3a !important;
         color: #ffffff !important;
-        border: none;
+        border: 1px solid #5a5a5a;
     }
 
     .stButton>button:hover {
-        background-color: #4b5563 !important;
+        background-color: #4a4a4a !important;
         color: #ffffff !important;
+        border-color: #6a6a6a;
     }
 
-    /* Primary 버튼 */
+    /* Primary 버튼 - 화이트 */
     .stButton>button[kind="primary"] {
-        background-color: #2563eb !important;
-        color: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 2px solid #ffffff;
     }
 
     .stButton>button[kind="primary"]:hover {
-        background-color: #1d4ed8 !important;
-        color: #ffffff !important;
+        background-color: #e0e0e0 !important;
+        color: #000000 !important;
     }
 
-    /* 다운로드 버튼 */
+    /* 다운로드 버튼 - 라이트 그레이 */
     .stDownloadButton>button {
-        background-color: #059669 !important;
+        background-color: #4a4a4a !important;
         color: #ffffff !important;
         border-radius: 6px;
         font-weight: 600;
         padding: 0.625rem 1.25rem;
+        border: 1px solid #6a6a6a;
     }
 
     .stDownloadButton>button:hover {
-        background-color: #047857 !important;
+        background-color: #5a5a5a !important;
         color: #ffffff !important;
     }
 
-    /* 탭 */
+    /* 탭 - 다크 그레이 */
     .stTabs [data-baseweb="tab-list"] {
-        background-color: #c4c9d1;
+        background-color: #1a1a1a;
         border-radius: 6px;
         padding: 0.25rem;
+        border: 1px solid #3a3a3a;
     }
 
     .stTabs [data-baseweb="tab"] {
-        color: #374151 !important;
+        color: #8a8a8a !important;
         font-weight: 600;
     }
 
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background-color: #ffffff !important;
-        color: #111827 !important;
+        background-color: #3a3a3a !important;
+        color: #ffffff !important;
     }
 
-    /* 사이드바 - 밝은 회색 */
+    /* 사이드바 - 다크 그레이 */
     [data-testid="stSidebar"] {
-        background-color: #c4c9d1 !important;
+        background-color: #1a1a1a !important;
         padding-top: 1rem !important;
         overflow-y: auto !important;
         transition: all 0.3s ease !important;
+        border-right: 1px solid #3a3a3a;
     }
 
     [data-testid="stSidebar"] > div:first-child {
         padding-top: 0.5rem !important;
+        background-color: #1a1a1a !important;
     }
 
     /* 사이드바가 접혔을 때 */
@@ -280,12 +286,12 @@ st.markdown("""
 
     /* 사이드바 닫기 버튼 */
     [data-testid="baseButton-header"] {
-        color: #1f2937 !important;
+        color: #ffffff !important;
         background-color: transparent !important;
     }
 
     [data-testid="baseButton-header"]:hover {
-        background-color: rgba(107, 114, 128, 0.1) !important;
+        background-color: rgba(255, 255, 255, 0.1) !important;
     }
 
     [data-testid="stSidebar"] h1,
@@ -295,61 +301,62 @@ st.markdown("""
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] span,
     [data-testid="stSidebar"] div {
-        color: #1f2937 !important;
+        color: #ffffff !important;
         font-weight: 500 !important;
     }
 
     [data-testid="stSidebar"] .stMarkdown {
-        color: #1f2937 !important;
+        color: #ffffff !important;
     }
 
     /* 체크박스 */
     .stCheckbox {
-        color: #1f2937 !important;
+        color: #ffffff !important;
     }
 
     .stCheckbox label {
-        color: #1f2937 !important;
+        color: #ffffff !important;
         font-weight: 500 !important;
     }
 
     .stCheckbox span {
-        color: #1f2937 !important;
+        color: #ffffff !important;
     }
 
     /* 메트릭 */
     [data-testid="stMetricValue"] {
-        color: #1f2937 !important;
+        color: #ffffff !important;
         font-size: 1.5rem !important;
         font-weight: 700 !important;
     }
 
     [data-testid="stMetricLabel"] {
-        color: #374151 !important;
+        color: #e0e0e0 !important;
         font-weight: 600 !important;
     }
 
     /* 메트릭 컨테이너 배경 */
     [data-testid="metric-container"] {
-        background-color: #ffffff !important;
+        background-color: #1a1a1a !important;
         padding: 1rem !important;
         border-radius: 8px !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.5) !important;
+        border: 1px solid #3a3a3a !important;
     }
 
     /* 헤더 */
     h1, h2, h3 {
-        color: #1f2937 !important;
+        color: #ffffff !important;
     }
 
     /* 일반 텍스트 */
     p, span, div, label {
-        color: #1f2937 !important;
+        color: #e0e0e0 !important;
     }
 
     /* Streamlit 상단 헤더 */
     header {
-        background-color: #d1d5db !important;
+        background-color: #0a0a0a !important;
         padding: 0 !important;
         margin: 0 !important;
         height: 3rem !important;
@@ -358,7 +365,7 @@ st.markdown("""
     }
 
     header * {
-        color: #1f2937 !important;
+        color: #ffffff !important;
     }
 
     /* 툴바 */
@@ -372,19 +379,20 @@ st.markdown("""
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
-        background-color: #6b7280 !important;
+        background-color: #3a3a3a !important;
         color: #ffffff !important;
         border-radius: 6px !important;
         padding: 0.75rem !important;
         margin: 0.5rem !important;
-        border: none !important;
+        border: 1px solid #5a5a5a !important;
         cursor: pointer !important;
         z-index: 1000 !important;
         position: relative !important;
     }
 
     [data-testid="collapsedControl"]:hover {
-        background-color: #4b5563 !important;
+        background-color: #4a4a4a !important;
+        border-color: #6a6a6a !important;
     }
 
     [data-testid="collapsedControl"] svg {
@@ -396,18 +404,19 @@ st.markdown("""
     button[kind="header"] {
         display: flex !important;
         visibility: visible !important;
-        background-color: #6b7280 !important;
+        background-color: #3a3a3a !important;
         color: #ffffff !important;
         border-radius: 6px !important;
+        border: 1px solid #5a5a5a !important;
     }
 
     button[kind="header"]:hover {
-        background-color: #4b5563 !important;
+        background-color: #4a4a4a !important;
     }
 
     /* 상단 바 제거 */
     [data-testid="stHeader"] {
-        background-color: #d1d5db !important;
+        background-color: #0a0a0a !important;
         padding: 0.5rem !important;
         margin: 0 !important;
         visibility: visible !important;
@@ -430,75 +439,75 @@ st.markdown("""
         padding-top: 0 !important;
     }
 
-    /* 입력 필드 */
+    /* 입력 필드 - 다크 */
     input, select, textarea {
-        background-color: #ffffff !important;
-        color: #1f2937 !important;
-        border: 2px solid #9ca3af !important;
+        background-color: #2a2a2a !important;
+        color: #ffffff !important;
+        border: 2px solid #4a4a4a !important;
         font-weight: 600 !important;
     }
 
     input:focus, select:focus, textarea:focus {
-        border-color: #6366f1 !important;
+        border-color: #8a8a8a !important;
         outline: none !important;
     }
 
     /* Number input */
     [data-testid="stNumberInput"] input {
-        background-color: #ffffff !important;
-        color: #1f2937 !important;
+        background-color: #2a2a2a !important;
+        color: #ffffff !important;
         font-weight: 700 !important;
         font-size: 1rem !important;
     }
 
     /* Selectbox - 드롭다운 */
     [data-testid="stSelectbox"] {
-        background-color: #ffffff !important;
+        background-color: #2a2a2a !important;
     }
 
     [data-testid="stSelectbox"] > div > div {
-        background-color: #ffffff !important;
-        color: #1f2937 !important;
+        background-color: #2a2a2a !important;
+        color: #ffffff !important;
     }
 
     [data-testid="stSelectbox"] select {
-        background-color: #ffffff !important;
-        color: #1f2937 !important;
+        background-color: #2a2a2a !important;
+        color: #ffffff !important;
         font-weight: 600 !important;
     }
 
     [data-testid="stSelectbox"] label {
-        color: #1f2937 !important;
+        color: #ffffff !important;
         font-weight: 600 !important;
     }
 
     /* 드롭다운 메뉴 */
     [data-baseweb="popover"] {
-        background-color: #ffffff !important;
+        background-color: #2a2a2a !important;
     }
 
     [data-baseweb="menu"] {
-        background-color: #ffffff !important;
+        background-color: #2a2a2a !important;
     }
 
     [data-baseweb="menu"] li {
-        background-color: #ffffff !important;
-        color: #1f2937 !important;
+        background-color: #2a2a2a !important;
+        color: #ffffff !important;
     }
 
     [data-baseweb="menu"] li:hover {
-        background-color: #f3f4f6 !important;
-        color: #111827 !important;
+        background-color: #3a3a3a !important;
+        color: #ffffff !important;
     }
 
     /* 슬라이더 라벨 */
     [data-testid="stSlider"] label {
-        color: #1f2937 !important;
+        color: #ffffff !important;
         font-weight: 600 !important;
     }
 
     [data-testid="stSlider"] div {
-        color: #1f2937 !important;
+        color: #ffffff !important;
     }
 
     /* 체크박스 스타일 - 검정 배경에서도 잘 보이게 */
@@ -513,15 +522,15 @@ st.markdown("""
 
     /* 체크박스 자체 */
     [data-testid="stCheckbox"] input[type="checkbox"] {
-        background-color: #ffffff !important;
-        border: 2px solid #374151 !important;
+        background-color: #2a2a2a !important;
+        border: 2px solid #5a5a5a !important;
         width: 20px !important;
         height: 20px !important;
     }
 
     [data-testid="stCheckbox"] input[type="checkbox"]:checked {
-        background-color: #10b981 !important;
-        border-color: #059669 !important;
+        background-color: #8a8a8a !important;
+        border-color: #aaaaaa !important;
     }
 
     /* 체크 표시 아이콘 - 더 강력하게 */
@@ -540,18 +549,18 @@ st.markdown("""
     /* 체크박스 체크 마크 */
     [data-testid="stCheckbox"] input[type="checkbox"]:checked::after {
         color: #ffffff !important;
-        background-color: #10b981 !important;
+        background-color: #8a8a8a !important;
     }
 
     /* Streamlit 기본 체크박스 스타일 강제 덮어쓰기 */
     .st-emotion-cache-* [data-testid="stCheckbox"] input[type="checkbox"]:checked {
-        background-color: #10b981 !important;
+        background-color: #8a8a8a !important;
         background-image: none !important;
     }
 
-    /* 주황색 경고 박스 안의 텍스트 */
+    /* 경고 박스 안의 텍스트 */
     .alert-warning div div {
-        color: #1f2937 !important;
+        color: #ffffff !important;
     }
 
     /* 사이드바 토글 버튼 - 명확하게 보이도록 */
@@ -559,9 +568,9 @@ st.markdown("""
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
-        background-color: #1f2937 !important;
+        background-color: #2a2a2a !important;
         color: #ffffff !important;
-        border: 2px solid #374151 !important;
+        border: 2px solid #5a5a5a !important;
         border-radius: 8px !important;
         padding: 0.75rem !important;
         cursor: pointer !important;
@@ -576,7 +585,7 @@ st.markdown("""
     }
 
     [data-testid="collapsedControl"]:hover {
-        background-color: #374151 !important;
+        background-color: #3a3a3a !important;
         transform: scale(1.1) !important;
     }
 
@@ -588,27 +597,27 @@ st.markdown("""
 
     /* 사이드바 자체 */
     [data-testid="stSidebar"] {
-        background-color: #f8f9fa !important;
+        background-color: #1a1a1a !important;
     }
 
     [data-testid="stSidebar"] > div:first-child {
-        background-color: #f8f9fa !important;
+        background-color: #1a1a1a !important;
     }
 
     /* 사이드바 헤더 */
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
-        color: #1f2937 !important;
+        color: #ffffff !important;
     }
 
-    /* Expander (접기/펼치기) 스타일 - 검정 배경에 흰색 텍스트 */
+    /* Expander (접기/펼치기) 스타일 - 모노크롬 */
     [data-testid="stExpander"] {
-        background-color: #ffffff !important;
-        border: 1px solid #e2e8f0 !important;
+        background-color: #1a1a1a !important;
+        border: 1px solid #3a3a3a !important;
         border-radius: 8px !important;
     }
 
     [data-testid="stExpander"] summary {
-        background-color: #1f2937 !important;
+        background-color: #2a2a2a !important;
         color: #ffffff !important;
         padding: 0.75rem !important;
         border-radius: 6px !important;
@@ -616,7 +625,7 @@ st.markdown("""
     }
 
     [data-testid="stExpander"] summary:hover {
-        background-color: #374151 !important;
+        background-color: #3a3a3a !important;
     }
 
     [data-testid="stExpander"] summary * {
@@ -624,19 +633,19 @@ st.markdown("""
     }
 
     [data-testid="stExpander"] details[open] summary {
-        border-bottom: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #3a3a3a !important;
         border-radius: 6px 6px 0 0 !important;
     }
 
     /* Expander 내부 컨텐츠 */
     [data-testid="stExpander"] > div > div {
-        background-color: #ffffff !important;
+        background-color: #1a1a1a !important;
         padding: 1rem !important;
     }
 
     /* Expander 추가 스타일 - 모든 가능한 선택자 */
     details summary {
-        background-color: #1f2937 !important;
+        background-color: #2a2a2a !important;
         color: #ffffff !important;
         padding: 0.75rem !important;
         border-radius: 6px !important;
@@ -657,7 +666,7 @@ st.markdown("""
 
     /* Streamlit expander 특정 */
     .streamlit-expanderHeader {
-        background-color: #1f2937 !important;
+        background-color: #2a2a2a !important;
         color: #ffffff !important;
     }
 
@@ -667,12 +676,12 @@ st.markdown("""
 
     /* 모든 details/summary 요소 */
     details[open] > summary {
-        background-color: #1f2937 !important;
+        background-color: #2a2a2a !important;
         color: #ffffff !important;
     }
 
     details:not([open]) > summary {
-        background-color: #1f2937 !important;
+        background-color: #2a2a2a !important;
         color: #ffffff !important;
     }
 </style>
@@ -747,20 +756,28 @@ def load_psi_data(file_path):
 
     df_safety = pd.DataFrame(safety_data)
 
-    # ABC-XYZ 데이터
+    # ABC-XYZ 데이터 (월별 출고 포함)
     ws_abc = wb['ABC-XYZ분석 (2)']
     abc_data = []
     for row in range(2, min(ws_abc.max_row + 1, 410)):
         sku = ws_abc.cell(row, 3).value  # 컬럼 3: SKU#
         if sku:
-            abc_data.append({
+            row_data = {
                 'SKU코드': sku,
                 '제품명': ws_abc.cell(row, 7).value,     # 컬럼 7: 제품명
                 '연간판매': ws_abc.cell(row, 22).value or 0,  # 컬럼 22: 연간 판매
                 '매입원가': ws_abc.cell(row, 24).value or 0,  # 컬럼 24: 평균 판매단가
                 '연간COGS': ws_abc.cell(row, 26).value or 0,  # 컬럼 26: 25년 연간 판매금액
                 'ABC등급': ws_abc.cell(row, 29).value,   # 컬럼 29: ABC등급
-            })
+            }
+
+            # 월별 출고 데이터 (컬럼 10-21: 1월~12월)
+            for month_idx in range(1, 13):
+                col_idx = 9 + month_idx  # 10-21 컬럼
+                month_value = ws_abc.cell(row, col_idx).value or 0
+                row_data[f'{month_idx}월출고'] = month_value
+
+            abc_data.append(row_data)
 
     df_abc = pd.DataFrame(abc_data)
 
@@ -867,15 +884,13 @@ def analyze_procurement_needs(df_inventory, df_safety):
             if shortage <= 0:
                 return 0
 
-            # 기본: 부족분 + 월 판매량
-            monthly_sales = float(row['일평균판매']) * 30
-            base_qty = shortage + monthly_sales
+            # 기본: 부족분 + 1주 판매량 (안전 마진)
+            weekly_sales = float(row['일평균판매']) * 7
+            base_qty = shortage + weekly_sales
 
-            # ABC 등급별 조정
-            if row['ABC등급'] == 'A':
-                base_qty *= 1.2  # 20% 증량
-            elif row['ABC등급'] == 'C':
-                base_qty *= 0.9  # 10% 감량
+            # 안전재고 자체가 이미 ABC/XYZ 보정이 적용된 값이므로
+            # 추가 보정 없이 기본 발주량만 계산
+            # (안전재고 → 발주점 → shortage 계산 시 이미 반영됨)
 
             return max(0, int(base_qty))
         except Exception as e:
@@ -1009,7 +1024,7 @@ def main():
     ]
 
     # 탭 구성
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 대시보드", "📦 발주 관리", "📋 발주 현황", "📈 분석", "⚙️ 설정"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📊 대시보드", "📦 발주 관리", "🎯 KPI 관리", "📋 발주 현황", "📈 분석", "⚙️ 설정"])
 
     with tab1:
         show_dashboard(dashboard_data, df_analysis)
@@ -1018,12 +1033,15 @@ def main():
         show_procurement(df_filtered)
 
     with tab3:
-        show_order_status(df_analysis)
+        show_kpi_management(df_analysis, df_psi, df_abc)
 
     with tab4:
-        show_analysis(df_analysis, df_abc)
+        show_order_status(df_analysis)
 
     with tab5:
+        show_analysis(df_analysis, df_abc)
+
+    with tab6:
         show_settings()
 
 def show_dashboard(dashboard_data, df_analysis):
@@ -1161,24 +1179,16 @@ def show_dashboard(dashboard_data, df_analysis):
             if st.button("전체 선택", key="select_all_dashboard"):
                 all_skus = set(reorder['SKU코드'].tolist())
                 st.session_state.selected_items = all_skus
-                # 모든 체크박스 상태를 True로 설정
-                for idx, row in reorder.iterrows():
-                    sku_code = row['SKU코드']
-                    checkbox_key = f"check_{sku_code}_{idx}"
-                    st.session_state[checkbox_key] = True
-                # 전체 선택 플래그 설정
+                # 전체 선택 플래그 설정 (체크박스 상태는 value로 자동 반영)
                 st.session_state.just_selected_all_dash = True
+                st.rerun()
 
         with col_clear:
             if st.button("선택 해제", key="deselect_all"):
                 st.session_state.selected_items = set()
-                # 모든 체크박스 상태를 False로 설정
-                for idx, row in reorder.iterrows():
-                    sku_code = row['SKU코드']
-                    checkbox_key = f"check_{sku_code}_{idx}"
-                    st.session_state[checkbox_key] = False
-                # 전체 해제 플래그 설정
+                # 전체 해제 플래그 설정 (체크박스 상태는 value로 자동 반영)
                 st.session_state.just_cleared_all_dash = True
+                st.rerun()
 
         with col_action:
             selected_count = len(st.session_state.selected_items)
@@ -1361,14 +1371,14 @@ def show_dashboard(dashboard_data, df_analysis):
     status_count = df_analysis['재고상태'].value_counts()
 
     # 전문적인 컬러 팔레트 (회색 계열)
-    modern_colors = ['#dc2626', '#f59e0b', '#059669', '#475569']
+    status_colors = ['#dc2626', '#f59e0b', '#059669', '#475569']
 
     fig = go.Figure(data=[go.Pie(
         labels=status_count.index,
         values=status_count.values,
         hole=.4,
         marker=dict(
-            colors=modern_colors,
+            colors=status_colors,
             line=dict(color='white', width=3)
         ),
         textfont=dict(size=14, color='white', family='Arial Black'),
@@ -1378,13 +1388,13 @@ def show_dashboard(dashboard_data, df_analysis):
     fig.update_layout(
         title=dict(
             text="재고 상태 분포",
-            font=dict(size=16, color='#0f172a', family='Arial')
+            font=dict(size=16, color='#ffffff', family='Arial')
         ),
         showlegend=True,
         height=400,
-        paper_bgcolor='#ffffff',
-        plot_bgcolor='#ffffff',
-        font=dict(family='Arial, sans-serif', size=11, color='#475569')
+        paper_bgcolor='#0a0a0a',
+        plot_bgcolor='#0a0a0a',
+        font=dict(family='Arial, sans-serif', size=11, color='#e0e0e0')
     )
 
     st.plotly_chart(fig, use_container_width=True)
@@ -1392,6 +1402,65 @@ def show_dashboard(dashboard_data, df_analysis):
 def show_procurement(df_filtered):
     """발주 관리 화면"""
     st.header("📦 스마트 발주 관리")
+
+    # 발주 기준 설명 및 데이터 정보
+    with st.expander("📋 발주 기준 및 계산 방식", expanded=False):
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("""
+            ### 🎯 발주 기준
+
+            **발주 필요 판단**:
+            - 현재고 ≤ 발주점
+            - AND 재고소진일 < 30일
+
+            **발주점 계산**:
+            ```
+            발주점 = (일평균판매 × 리드타임) + 안전재고
+            ```
+            ⚠️ **안전재고는 ABC/XYZ 등급에 따른 보정이 이미 적용된 값입니다**
+            - ABC등급: 매출 기여도 (A > B > C)
+            - XYZ등급: 수요 변동성 및 계절성 (Z = 높은 변동성)
+
+            **권장 발주량**:
+            ```
+            발주량 = (발주점 - 현재고) + 1주 판매량
+            ```
+            부족분 + 안전 마진(1주치)
+            """)
+
+        with col2:
+            st.markdown("""
+            ### 📊 데이터 정보
+
+            **PSI 엑셀 파일에서 자동 계산**:
+            - 안전재고 (ABC/XYZ 보정 적용됨)
+            - 발주점 (리드타임 + 안전재고)
+            - 일평균판매 (최근 30일 기준)
+            - 재고소진일
+
+            **ABC/XYZ 분석**:
+            - ABC: 연간 매출 기여도 (파레토 법칙)
+            - XYZ: 수요 변동계수 (표준편차/평균)
+            - Z등급은 계절성 상품 포함
+
+            **업데이트 방법**:
+            1. 좌측 사이드바에서 파일 업로드
+            2. 또는 경로 입력으로 자동 로드
+            3. 일별/주별 업데이트 권장
+            """)
+
+        st.info("💡 **팁**: 발주량은 권장사항입니다. 실제 시장 상황, 프로모션 계획 등을 고려하여 조정하세요.")
+
+        st.success("""
+        ✅ **중요**: 안전재고는 PSI 엑셀 파일에서 이미 ABC/XYZ 등급별 보정계수가 적용되어 있습니다.
+        - A등급/X등급: 높은 서비스 레벨 (안전재고 ↑)
+        - Z등급: 계절성/변동성 반영 (안전재고 ↑)
+        - C등급: 낮은 우선순위 (안전재고 ↓)
+        """)
+
+    st.markdown("---")
 
     # 발주 필요 품목 (권장발주량이 0보다 큰 것만)
     need_order = df_filtered[
@@ -1412,26 +1481,30 @@ def show_procurement(df_filtered):
                 if st.button("전체 선택", key="select_all_reorder_tab"):
                     all_skus = set(need_order_df['SKU코드'].tolist())
                     st.session_state.selected_items = all_skus
-                    # 모든 체크박스 상태를 True로 설정
+                    # 전체 선택 플래그 설정
+                    st.session_state.just_selected_all = True
+                    # 체크박스 상태 업데이트 (각 체크박스 키에 맞게)
                     for enum_idx, (idx, row) in enumerate(need_order_df.iterrows()):
                         sku_code = row['SKU코드']
                         checkbox_key = f"sel_reorder_{sku_code}_{enum_idx}"
-                        st.session_state[checkbox_key] = True
-                    # 전체 선택 플래그 설정
-                    st.session_state.just_selected_all = True
-                    st.rerun(scope="fragment")
+                        # 기존 키가 있으면 업데이트
+                        if checkbox_key in st.session_state:
+                            st.session_state[checkbox_key] = True
+                    st.rerun()  # 전체 페이지 rerun으로 변경 (하단 발주 버튼 표시용)
 
             with col_clear:
                 if st.button("선택 해제", key="clear_all_reorder_tab"):
                     st.session_state.selected_items = set()
-                    # 모든 체크박스 상태를 False로 설정
+                    # 전체 해제 플래그 설정
+                    st.session_state.just_cleared_all = True
+                    # 체크박스 상태 업데이트 (각 체크박스 키에 맞게)
                     for enum_idx, (idx, row) in enumerate(need_order_df.iterrows()):
                         sku_code = row['SKU코드']
                         checkbox_key = f"sel_reorder_{sku_code}_{enum_idx}"
-                        st.session_state[checkbox_key] = False
-                    # 전체 해제 플래그 설정
-                    st.session_state.just_cleared_all = True
-                    st.rerun(scope="fragment")
+                        # 기존 키가 있으면 업데이트
+                        if checkbox_key in st.session_state:
+                            st.session_state[checkbox_key] = False
+                    st.rerun()  # 전체 페이지 rerun으로 변경 (하단 발주 버튼 숨김용)
 
             # 선택된 품목 수 표시
             selected_count = len(st.session_state.selected_items)
@@ -1670,12 +1743,12 @@ def show_analysis(df_analysis, df_abc):
             color_discrete_map={'A': '#dc2626', 'B': '#f59e0b', 'C': '#475569'}
         )
         fig1.update_layout(
-            plot_bgcolor='#ffffff',
-            paper_bgcolor='#ffffff',
-            title_font=dict(size=15, color='#0f172a', family='Arial'),
-            xaxis=dict(showgrid=False, title_font=dict(color='#475569')),
-            yaxis=dict(showgrid=True, gridcolor='#e2e8f0', title_font=dict(color='#475569')),
-            font=dict(color='#475569')
+            plot_bgcolor='#0a0a0a',
+            paper_bgcolor='#0a0a0a',
+            title_font=dict(size=15, color='#ffffff', family='Arial'),
+            xaxis=dict(showgrid=False, title_font=dict(color='#e0e0e0')),
+            yaxis=dict(showgrid=True, gridcolor='#2a2a2a', title_font=dict(color='#e0e0e0')),
+            font=dict(color='#e0e0e0')
         )
         fig1.update_traces(marker_line_width=0, textposition='outside')
         st.plotly_chart(fig1, use_container_width=True)
@@ -1691,14 +1764,14 @@ def show_analysis(df_analysis, df_abc):
             hole=0.3
         )
         fig2.update_layout(
-            plot_bgcolor='#ffffff',
-            paper_bgcolor='#ffffff',
-            title_font=dict(size=15, color='#0f172a', family='Arial'),
-            font=dict(color='#475569')
+            plot_bgcolor='#0a0a0a',
+            paper_bgcolor='#0a0a0a',
+            title_font=dict(size=15, color='#ffffff', family='Arial'),
+            font=dict(color='#e0e0e0')
         )
         fig2.update_traces(
             textfont=dict(size=12, color='white', family='Arial'),
-            marker=dict(line=dict(color='white', width=2))
+            marker=dict(line=dict(color='#3a3a3a', width=2))
         )
         st.plotly_chart(fig2, use_container_width=True)
 
@@ -1735,12 +1808,12 @@ def show_analysis(df_analysis, df_abc):
                 color_discrete_map={'X': '#10b981', 'Y': '#f59e0b', 'Z': '#dc2626'}
             )
             fig_xyz1.update_layout(
-                plot_bgcolor='#ffffff',
-                paper_bgcolor='#ffffff',
-                title_font=dict(size=15, color='#0f172a', family='Arial'),
-                xaxis=dict(showgrid=False, title_font=dict(color='#475569')),
-                yaxis=dict(showgrid=True, gridcolor='#e2e8f0', title_font=dict(color='#475569')),
-                font=dict(color='#475569')
+                plot_bgcolor='#0a0a0a',
+                paper_bgcolor='#0a0a0a',
+                title_font=dict(size=15, color='#ffffff', family='Arial'),
+                xaxis=dict(showgrid=False, title_font=dict(color='#e0e0e0')),
+                yaxis=dict(showgrid=True, gridcolor='#2a2a2a', title_font=dict(color='#e0e0e0')),
+                font=dict(color='#e0e0e0')
             )
             fig_xyz1.update_traces(marker_line_width=0, textposition='outside')
             st.plotly_chart(fig_xyz1, use_container_width=True)
@@ -1756,14 +1829,14 @@ def show_analysis(df_analysis, df_abc):
                 hole=0.3
             )
             fig_xyz2.update_layout(
-                plot_bgcolor='#ffffff',
-                paper_bgcolor='#ffffff',
-                title_font=dict(size=15, color='#0f172a', family='Arial'),
-                font=dict(color='#475569')
+                plot_bgcolor='#0a0a0a',
+                paper_bgcolor='#0a0a0a',
+                title_font=dict(size=15, color='#ffffff', family='Arial'),
+                font=dict(color='#e0e0e0')
             )
             fig_xyz2.update_traces(
                 textfont=dict(size=12, color='white', family='Arial'),
-                marker=dict(line=dict(color='white', width=2))
+                marker=dict(line=dict(color='#3a3a3a', width=2))
             )
             st.plotly_chart(fig_xyz2, use_container_width=True)
 
@@ -1872,12 +1945,12 @@ def show_analysis(df_analysis, df_abc):
             }
         )
         fig_turnover_bar.update_layout(
-            plot_bgcolor='#ffffff',
-            paper_bgcolor='#ffffff',
-            title_font=dict(size=15, color='#0f172a', family='Arial'),
-            xaxis=dict(showgrid=False, title_font=dict(color='#475569')),
-            yaxis=dict(showgrid=True, gridcolor='#e2e8f0', title_font=dict(color='#475569')),
-            font=dict(color='#475569'),
+            plot_bgcolor='#0a0a0a',
+            paper_bgcolor='#0a0a0a',
+            title_font=dict(size=15, color='#ffffff', family='Arial'),
+            xaxis=dict(showgrid=False, title_font=dict(color='#e0e0e0')),
+            yaxis=dict(showgrid=True, gridcolor='#2a2a2a', title_font=dict(color='#e0e0e0')),
+            font=dict(color='#e0e0e0'),
             showlegend=False
         )
         fig_turnover_bar.update_traces(marker_line_width=0, textposition='outside')
@@ -1895,21 +1968,21 @@ def show_analysis(df_analysis, df_abc):
             color_discrete_sequence=['#3b82f6']
         )
         fig_turnover_hist.update_layout(
-            plot_bgcolor='#ffffff',
-            paper_bgcolor='#ffffff',
-            title_font=dict(size=15, color='#0f172a', family='Arial'),
+            plot_bgcolor='#0a0a0a',
+            paper_bgcolor='#0a0a0a',
+            title_font=dict(size=15, color='#ffffff', family='Arial'),
             xaxis=dict(
                 showgrid=False,
                 title='재고회전일',
-                title_font=dict(color='#475569')
+                title_font=dict(color='#e0e0e0')
             ),
             yaxis=dict(
                 showgrid=True,
-                gridcolor='#e2e8f0',
+                gridcolor='#2a2a2a',
                 title='SKU 수',
-                title_font=dict(color='#475569')
+                title_font=dict(color='#e0e0e0')
             ),
-            font=dict(color='#475569')
+            font=dict(color='#e0e0e0')
         )
         st.plotly_chart(fig_turnover_hist, use_container_width=True)
 
@@ -1981,6 +2054,430 @@ def show_analysis(df_analysis, df_abc):
             file_name=f"재고회전일_상세_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"
         )
+
+def show_kpi_management(df_analysis, df_psi, df_abc):
+    """KPI 관리 화면 - 월별 목표 설정 및 달성도 추적"""
+    st.header("🎯 KPI 관리")
+
+    # KPI 설명 추가
+    with st.expander("📖 KPI 항목별 설명 및 기준", expanded=False):
+        st.markdown("""
+        ### 📊 5가지 핵심 KPI 설명
+
+        #### 1️⃣ 재고회전율 (Inventory Turnover Rate)
+        **정의**: 연간 재고가 몇 번 회전(판매)되는지를 나타내는 지표
+        **계산**: (월간 출고량 / 평균 재고) × 12
+        **업종별 기준**:
+        - 제조업: 8~12회 (월 1회)
+        - 유통업: 12~24회 (월 2회)
+        - 식품/패션: 24~52회 (주 1회)
+
+        **중요성**: 높을수록 재고 효율이 좋으며, 재고 보관 비용 절감
+        ⚠️ 너무 높으면 품절 위험 증가
+
+        ---
+
+        #### 2️⃣ 평균재고소진일 (Average Days of Inventory)
+        **정의**: 현재 재고가 완전히 소진되기까지 걸리는 평균 일수
+        **계산**: 현재고 / 일평균판매
+        **기준**:
+        - 우수: 20~30일
+        - 양호: 30~45일
+        - 주의: 45~60일
+        - 개선 필요: 60일 초과
+
+        **중요성**: 낮을수록 재고 회전이 빠르고 신선도 유지
+
+        ---
+
+        #### 3️⃣ 발주정확도 (Order Accuracy)
+        **정의**: 적정 시점에 적정 수량을 발주한 비율
+        **계산**: (적정 발주 품목 수 / 전체 발주 품목 수) × 100
+        **기준**:
+        - 우수: 95% 이상
+        - 양호: 90~95%
+        - 개선 필요: 90% 미만
+
+        **중요성**: 높을수록 재고 낭비 감소, 물류비 절감
+        💡 재고소진일 10~30일 사이 발주를 적정으로 간주
+
+        ---
+
+        #### 4️⃣ 품절률 (Stockout Rate)
+        **정의**: 전체 품목 중 재고 부족(🔴) 상태인 품목의 비율
+        **계산**: (재고 부족 품목 수 / 전체 품목 수) × 100
+        **기준**:
+        - 우수: 2% 미만
+        - 양호: 2~5%
+        - 주의: 5~10%
+        - 위험: 10% 초과
+
+        **중요성**: 낮을수록 좋으며, 판매 기회 손실 방지
+        💰 품절 1회 = 매출 손실 + 고객 신뢰 하락
+
+        ---
+
+        #### 5️⃣ 과다재고율 (Overstock Rate)
+        **정의**: 전체 품목 중 과잉 재고(🔵) 상태인 품목의 비율
+        **계산**: (과다 재고 품목 수 / 전체 품목 수) × 100
+        **기준**:
+        - 우수: 5% 미만
+        - 양호: 5~10%
+        - 주의: 10~15%
+        - 개선 필요: 15% 초과
+
+        **중요성**: 낮을수록 재고 자금 효율적 운영
+        💸 과다재고 = 보관비 증가 + 자금 묶임 + 진부화 위험
+
+        ---
+
+        ### 🎯 균형 있는 KPI 관리가 핵심!
+        - **품절률 ↓** vs **과다재고율 ↓**: 양쪽 균형이 중요
+        - **재고회전율 ↑** vs **품절률 ↓**: 적정선 유지 필요
+        - **발주정확도 ↑**: 모든 KPI 개선의 핵심
+        """)
+
+    # 현재 월
+    from datetime import datetime
+    current_month = datetime.now().strftime("%Y-%m")
+    current_month_num = datetime.now().month  # 1-12
+
+    # KPI 목표 설정 (실무에서는 엑셀이나 DB에서 가져오지만, 여기서는 session_state 사용)
+    if 'kpi_targets' not in st.session_state:
+        st.session_state.kpi_targets = {
+            '재고회전율': 12.0,    # 연간 12회 (월 1회)
+            '평균재고소진일': 30.0,  # 30일 이내
+            '발주정확도': 95.0,      # 95%
+            '품절률': 2.0,           # 2% 이하
+            '과다재고율': 10.0        # 10% 이하
+        }
+
+    # 월별 목표 설정
+    with st.expander("📝 월별 목표 설정", expanded=False):
+        st.write(f"**현재 월**: {current_month}")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            target_turnover = st.number_input(
+                "목표 재고회전율 (연간)",
+                min_value=1.0,
+                max_value=50.0,
+                value=st.session_state.kpi_targets['재고회전율'],
+                step=0.5,
+                help="연간 재고회전율 목표 (12회 = 월 1회)"
+            )
+            st.session_state.kpi_targets['재고회전율'] = target_turnover
+
+            target_days = st.number_input(
+                "목표 평균재고소진일 (일)",
+                min_value=1.0,
+                max_value=180.0,
+                value=st.session_state.kpi_targets['평균재고소진일'],
+                step=1.0,
+                help="재고가 소진되기까지 평균 일수"
+            )
+            st.session_state.kpi_targets['평균재고소진일'] = target_days
+
+            target_accuracy = st.number_input(
+                "목표 발주정확도 (%)",
+                min_value=50.0,
+                max_value=100.0,
+                value=st.session_state.kpi_targets['발주정확도'],
+                step=1.0,
+                help="발주한 품목 중 정확하게 발주한 비율"
+            )
+            st.session_state.kpi_targets['발주정확도'] = target_accuracy
+
+        with col2:
+            target_stockout = st.number_input(
+                "목표 품절률 (%)",
+                min_value=0.0,
+                max_value=50.0,
+                value=st.session_state.kpi_targets['품절률'],
+                step=0.5,
+                help="재고 부족으로 판매 불가한 품목 비율"
+            )
+            st.session_state.kpi_targets['품절률'] = target_stockout
+
+            target_overstock = st.number_input(
+                "목표 과다재고율 (%)",
+                min_value=0.0,
+                max_value=50.0,
+                value=st.session_state.kpi_targets['과다재고율'],
+                step=1.0,
+                help="재고가 과다한 품목 비율"
+            )
+            st.session_state.kpi_targets['과다재고율'] = target_overstock
+
+    st.markdown("---")
+
+    # 현재 실적 계산
+    st.subheader(f"📊 {current_month} 실적 현황")
+
+    # 1. 재고회전율 계산 (출고 데이터 기반)
+    if len(df_abc) > 0 and len(df_analysis) > 0:
+        # 당월 출고 데이터 합계
+        month_col = f'{current_month_num}월출고'
+        if month_col in df_abc.columns:
+            total_monthly_sales = df_abc[month_col].sum()
+        else:
+            # 컬럼이 없으면 연간판매를 12로 나눈 평균 사용
+            total_monthly_sales = df_abc['연간판매'].sum() / 12 if '연간판매' in df_abc.columns else 0
+
+        # 평균 재고
+        avg_inventory = df_analysis['현재고'].sum()
+
+        if avg_inventory > 0 and total_monthly_sales > 0:
+            # 월간 회전율 × 12 = 연간 회전율
+            current_turnover = (total_monthly_sales / avg_inventory) * 12
+        else:
+            current_turnover = 0
+    else:
+        current_turnover = 0
+
+    # 2. 평균 재고소진일
+    avg_days = df_analysis['재고소진일'].replace([float('inf'), -float('inf')], 999).mean()
+    if pd.isna(avg_days) or avg_days > 365:
+        avg_days = 999
+
+    # 3. 품절률 (재고 부족 품목 비율)
+    total_skus = len(df_analysis)
+    stockout_skus = len(df_analysis[df_analysis['재고상태'] == '🔴 부족'])
+    stockout_rate = (stockout_skus / total_skus * 100) if total_skus > 0 else 0
+
+    # 4. 과다재고율 (과다 재고 품목 비율)
+    overstock_skus = len(df_analysis[df_analysis['재고상태'] == '🔵 과잉'])
+    overstock_rate = (overstock_skus / total_skus * 100) if total_skus > 0 else 0
+
+    # 5. 발주정확도 (발주 필요 품목 대비 적정 발주 비율 - 간략화)
+    need_order_skus = len(df_analysis[df_analysis['발주필요'] == True])
+    if need_order_skus > 0:
+        # 재고소진일이 10-30일 사이인 것을 적정 발주로 간주
+        proper_orders = len(df_analysis[
+            (df_analysis['발주필요'] == True) &
+            (df_analysis['재고소진일'] >= 10) &
+            (df_analysis['재고소진일'] <= 30)
+        ])
+        order_accuracy = (proper_orders / need_order_skus * 100)
+    else:
+        order_accuracy = 100.0
+
+    # KPI 카드 표시
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    with col1:
+        delta1 = current_turnover - st.session_state.kpi_targets['재고회전율']
+        st.metric(
+            label="재고회전율 (연간)",
+            value=f"{current_turnover:.1f}회",
+            delta=f"{delta1:+.1f}",
+            delta_color="normal"
+        )
+        if current_turnover >= st.session_state.kpi_targets['재고회전율']:
+            st.success("✅ 목표 달성")
+        else:
+            st.error(f"❌ 목표: {st.session_state.kpi_targets['재고회전율']:.1f}회")
+
+    with col2:
+        delta2 = -(avg_days - st.session_state.kpi_targets['평균재고소진일'])  # 낮을수록 좋음
+        st.metric(
+            label="평균 재고소진일",
+            value=f"{avg_days:.1f}일",
+            delta=f"{delta2:+.1f}일" if abs(delta2) < 100 else "N/A",
+            delta_color="normal"
+        )
+        if avg_days <= st.session_state.kpi_targets['평균재고소진일']:
+            st.success("✅ 목표 달성")
+        else:
+            st.error(f"❌ 목표: {st.session_state.kpi_targets['평균재고소진일']:.1f}일")
+
+    with col3:
+        delta3 = order_accuracy - st.session_state.kpi_targets['발주정확도']
+        st.metric(
+            label="발주 정확도",
+            value=f"{order_accuracy:.1f}%",
+            delta=f"{delta3:+.1f}%",
+            delta_color="normal"
+        )
+        if order_accuracy >= st.session_state.kpi_targets['발주정확도']:
+            st.success("✅ 목표 달성")
+        else:
+            st.error(f"❌ 목표: {st.session_state.kpi_targets['발주정확도']:.1f}%")
+
+    with col4:
+        delta4 = -(stockout_rate - st.session_state.kpi_targets['품절률'])  # 낮을수록 좋음
+        st.metric(
+            label="품절률",
+            value=f"{stockout_rate:.1f}%",
+            delta=f"{delta4:+.1f}%",
+            delta_color="inverse"
+        )
+        if stockout_rate <= st.session_state.kpi_targets['품절률']:
+            st.success("✅ 목표 달성")
+        else:
+            st.error(f"❌ 목표: {st.session_state.kpi_targets['품절률']:.1f}%")
+
+    with col5:
+        delta5 = -(overstock_rate - st.session_state.kpi_targets['과다재고율'])  # 낮을수록 좋음
+        st.metric(
+            label="과다재고율",
+            value=f"{overstock_rate:.1f}%",
+            delta=f"{delta5:+.1f}%",
+            delta_color="inverse"
+        )
+        if overstock_rate <= st.session_state.kpi_targets['과다재고율']:
+            st.success("✅ 목표 달성")
+        else:
+            st.error(f"❌ 목표: {st.session_state.kpi_targets['과다재고율']:.1f}%")
+
+    st.markdown("---")
+
+    # 월별 추이 (시뮬레이션 - 실제로는 DB에서 가져와야 함)
+    st.subheader("📈 월별 KPI 추이")
+
+    import plotly.graph_objects as go
+
+    # 샘플 데이터 (실제로는 DB에서 가져와야 함)
+    months = ['2024-09', '2024-10', '2024-11', '2024-12', '2025-01', current_month]
+    turnover_history = [10.5, 11.2, 11.8, 12.3, 11.9, current_turnover]
+    days_history = [35, 33, 31, 29, 31, avg_days]
+    accuracy_history = [92, 93, 94, 95, 94, order_accuracy]
+
+    tab_chart1, tab_chart2, tab_chart3 = st.tabs(["재고회전율", "재고소진일", "발주정확도"])
+
+    with tab_chart1:
+        fig1 = go.Figure()
+        fig1.add_trace(go.Scatter(
+            x=months,
+            y=turnover_history,
+            mode='lines+markers',
+            name='실적',
+            line=dict(color='#3b82f6', width=3)
+        ))
+        fig1.add_trace(go.Scatter(
+            x=months,
+            y=[st.session_state.kpi_targets['재고회전율']] * len(months),
+            mode='lines',
+            name='목표',
+            line=dict(color='#ffffff', width=2, dash='dash')
+        ))
+        fig1.update_layout(
+            title='재고회전율 추이',
+            xaxis_title='월',
+            yaxis_title='회전율 (연간)',
+            plot_bgcolor='#0a0a0a',
+            paper_bgcolor='#0a0a0a',
+            title_font=dict(color='#ffffff'),
+            xaxis=dict(color='#e0e0e0', gridcolor='#2a2a2a'),
+            yaxis=dict(color='#e0e0e0', gridcolor='#2a2a2a'),
+            font=dict(color='#e0e0e0'),
+            height=400
+        )
+        st.plotly_chart(fig1, use_container_width=True)
+
+    with tab_chart2:
+        fig2 = go.Figure()
+        fig2.add_trace(go.Scatter(
+            x=months,
+            y=days_history,
+            mode='lines+markers',
+            name='실적',
+            line=dict(color='#10b981', width=3)
+        ))
+        fig2.add_trace(go.Scatter(
+            x=months,
+            y=[st.session_state.kpi_targets['평균재고소진일']] * len(months),
+            mode='lines',
+            name='목표',
+            line=dict(color='#ffffff', width=2, dash='dash')
+        ))
+        fig2.update_layout(
+            title='평균 재고소진일 추이',
+            xaxis_title='월',
+            yaxis_title='일수',
+            plot_bgcolor='#0a0a0a',
+            paper_bgcolor='#0a0a0a',
+            title_font=dict(color='#ffffff'),
+            xaxis=dict(color='#e0e0e0', gridcolor='#2a2a2a'),
+            yaxis=dict(color='#e0e0e0', gridcolor='#2a2a2a'),
+            font=dict(color='#e0e0e0'),
+            height=400
+        )
+        st.plotly_chart(fig2, use_container_width=True)
+
+    with tab_chart3:
+        fig3 = go.Figure()
+        fig3.add_trace(go.Scatter(
+            x=months,
+            y=accuracy_history,
+            mode='lines+markers',
+            name='실적',
+            line=dict(color='#f59e0b', width=3)
+        ))
+        fig3.add_trace(go.Scatter(
+            x=months,
+            y=[st.session_state.kpi_targets['발주정확도']] * len(months),
+            mode='lines',
+            name='목표',
+            line=dict(color='#ffffff', width=2, dash='dash')
+        ))
+        fig3.update_layout(
+            title='발주 정확도 추이',
+            xaxis_title='월',
+            yaxis_title='정확도 (%)',
+            plot_bgcolor='#0a0a0a',
+            paper_bgcolor='#0a0a0a',
+            title_font=dict(color='#ffffff'),
+            xaxis=dict(color='#e0e0e0', gridcolor='#2a2a2a'),
+            yaxis=dict(color='#e0e0e0', gridcolor='#2a2a2a'),
+            font=dict(color='#e0e0e0'),
+            height=400
+        )
+        st.plotly_chart(fig3, use_container_width=True)
+
+    st.markdown("---")
+
+    # 개선 제안
+    st.subheader("💡 개선 제안")
+
+    improvement_suggestions = []
+
+    if current_turnover < st.session_state.kpi_targets['재고회전율']:
+        improvement_suggestions.append(
+            f"⚠️ **재고회전율 개선 필요**: 현재 {current_turnover:.1f}회 → 목표 {st.session_state.kpi_targets['재고회전율']:.1f}회"
+        )
+        improvement_suggestions.append("   → 느린 회전 품목 재고 축소, 빠른 회전 품목 재고 확대")
+
+    if avg_days > st.session_state.kpi_targets['평균재고소진일']:
+        improvement_suggestions.append(
+            f"⚠️ **재고소진일 단축 필요**: 현재 {avg_days:.1f}일 → 목표 {st.session_state.kpi_targets['평균재고소진일']:.1f}일"
+        )
+        improvement_suggestions.append("   → 과다 재고 품목 판촉, 발주량 조정")
+
+    if order_accuracy < st.session_state.kpi_targets['발주정확도']:
+        improvement_suggestions.append(
+            f"⚠️ **발주정확도 향상 필요**: 현재 {order_accuracy:.1f}% → 목표 {st.session_state.kpi_targets['발주정확도']:.1f}%"
+        )
+        improvement_suggestions.append("   → 수요 예측 정확도 향상, 리드타임 관리 강화")
+
+    if stockout_rate > st.session_state.kpi_targets['품절률']:
+        improvement_suggestions.append(
+            f"⚠️ **품절률 감소 필요**: 현재 {stockout_rate:.1f}% → 목표 {st.session_state.kpi_targets['품절률']:.1f}%"
+        )
+        improvement_suggestions.append("   → 안전재고 확보, 발주 타이밍 앞당기기")
+
+    if overstock_rate > st.session_state.kpi_targets['과다재고율']:
+        improvement_suggestions.append(
+            f"⚠️ **과다재고율 감소 필요**: 현재 {overstock_rate:.1f}% → 목표 {st.session_state.kpi_targets['과다재고율']:.1f}%"
+        )
+        improvement_suggestions.append("   → 과다 재고 품목 판매 촉진, 발주량 축소")
+
+    if len(improvement_suggestions) == 0:
+        st.success("🎉 **모든 KPI 목표 달성!** 현재 재고 관리가 우수합니다.")
+    else:
+        for suggestion in improvement_suggestions:
+            st.warning(suggestion)
 
 def show_order_status(df_analysis):
     """발주 현황 대시보드"""
