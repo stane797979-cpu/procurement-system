@@ -20,6 +20,86 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# 발주 기록 함수
+def record_order_to_excel(psi_file_path, order_data):
+    """
+    발주 내역을 PSI 파일의 '발주리스트' 시트에 기록
+
+    Parameters:
+    - psi_file_path: PSI 엑셀 파일 경로
+    - order_data: dict with keys: SKU코드, 제품명, ABC등급, XYZ등급, 현재고, 발주량,
+                  매입원가, 재고소진일, 리드타임
+    """
+    try:
+        # 파일 열기
+        wb = openpyxl.load_workbook(psi_file_path)
+
+        # 발주리스트 시트 확인
+        if '발주리스트' not in wb.sheetnames:
+            st.warning("⚠️ PSI 파일에 '발주리스트' 시트가 없습니다.")
+            wb.close()
+            return False
+
+        ws = wb['발주리스트']
+
+        # 다음 빈 행 찾기 (2행부터 데이터 시작)
+        next_row = 2
+        while ws.cell(next_row, 1).value is not None:
+            next_row += 1
+
+        # 발주 데이터 작성
+        발주일 = datetime.now()
+        예상입고일 = 발주일 + timedelta(days=order_data.get('리드타임', 30))
+
+        # 발주 후 재고소진일 계산
+        발주후재고 = order_data['현재고'] + order_data['발주량']
+        일평균판매 = order_data.get('일평균판매', 0)
+        if 일평균판매 > 0:
+            발주후재고소진일 = 발주후재고 / 일평균판매
+        else:
+            발주후재고소진일 = 999
+
+        # A: 발주일
+        ws.cell(next_row, 1, 발주일)
+
+        # B: SKU#
+        ws.cell(next_row, 2, order_data['SKU코드'])
+
+        # C: 제품명
+        ws.cell(next_row, 3, order_data['제품명'])
+
+        # D: ABC/XYZ
+        abc_xyz = f"{order_data.get('ABC등급', 'N/A')}/{order_data.get('XYZ등급', 'N/A')}"
+        ws.cell(next_row, 4, abc_xyz)
+
+        # E: 현재고
+        ws.cell(next_row, 5, order_data['현재고'])
+
+        # F: 발주량
+        ws.cell(next_row, 6, order_data['발주량'])
+
+        # G: 구매원가
+        ws.cell(next_row, 7, order_data.get('매입원가', 0))
+
+        # H: 발주 전 재고소진일
+        ws.cell(next_row, 8, order_data.get('재고소진일', 0))
+
+        # I: 발주 후 재고소진일
+        ws.cell(next_row, 9, 발주후재고소진일)
+
+        # J: 예상입고일
+        ws.cell(next_row, 10, 예상입고일)
+
+        # 저장
+        wb.save(psi_file_path)
+        wb.close()
+
+        return True
+
+    except Exception as e:
+        st.error(f"❌ 발주 기록 중 오류: {str(e)}")
+        return False
+
 # 모노크롬 스타일 CSS (Black, White, Gray)
 st.markdown("""
 <style>
@@ -743,6 +823,10 @@ def load_psi_data(file_path):
     for row in range(2, min(ws_safety.max_row + 1, 410)):
         sku = ws_safety.cell(row, 1).value
         if sku:
+            # MOQ는 컬럼 11에 있을 수 있음 (없으면 None)
+            moq_value = ws_safety.cell(row, 11).value
+            # 공급업체는 컬럼 12에 있을 수 있음 (없으면 '미지정')
+            supplier_value = ws_safety.cell(row, 12).value
             safety_data.append({
                 'SKU코드': sku,
                 '제품명': ws_safety.cell(row, 2).value,
@@ -752,6 +836,8 @@ def load_psi_data(file_path):
                 'ABC': ws_safety.cell(row, 6).value,
                 'XYZ': ws_safety.cell(row, 7).value,
                 '안전재고': ws_safety.cell(row, 9).value or 0,
+                'MOQ': moq_value if moq_value and moq_value > 0 else None,
+                '공급업체': supplier_value if supplier_value else '미지정',
             })
 
     df_safety = pd.DataFrame(safety_data)
@@ -835,8 +921,8 @@ def load_psi_data(file_path):
 # 발주 필요 분석 함수
 def analyze_procurement_needs(df_inventory, df_safety):
     """발주 필요 SKU 분석"""
-    # 데이터 병합
-    df = pd.merge(df_inventory, df_safety[['SKU코드', '일평균판매', '리드타임']], on='SKU코드', how='left')
+    # 데이터 병합 (MOQ, 공급업체 포함)
+    df = pd.merge(df_inventory, df_safety[['SKU코드', '일평균판매', '리드타임', 'MOQ', '공급업체']], on='SKU코드', how='left')
 
     # 빈 값 처리 및 타입 변환
     df['일평균판매'] = pd.to_numeric(df['일평균판매'], errors='coerce').fillna(0)
@@ -892,7 +978,20 @@ def analyze_procurement_needs(df_inventory, df_safety):
             # 추가 보정 없이 기본 발주량만 계산
             # (안전재고 → 발주점 → shortage 계산 시 이미 반영됨)
 
-            return max(0, int(base_qty))
+            final_qty = max(0, int(base_qty))
+
+            # MOQ 적용 (MOQ가 있으면 MOQ의 배수로 올림)
+            moq = row.get('MOQ')
+            if moq and moq > 0:
+                import math
+                # 발주량이 MOQ보다 작으면 MOQ로 설정
+                if final_qty < moq:
+                    final_qty = int(moq)
+                else:
+                    # MOQ의 배수로 올림
+                    final_qty = int(math.ceil(final_qty / moq) * moq)
+
+            return final_qty
         except Exception as e:
             # 디버깅용: 에러 무시하지 말고 0 반환
             return 0
@@ -989,6 +1088,8 @@ def main():
     if excel_file:
         with st.spinner('PSI 데이터 로딩 중...'):
             dashboard_data, df_inventory, df_safety, df_abc, df_psi = load_psi_data(excel_file)
+            # PSI 파일 경로 저장 (발주 기록용)
+            st.session_state.psi_file_path = excel_file
     else:
         dashboard_data, df_inventory, df_safety, df_abc, df_psi = None, None, None, None, None
 
@@ -999,6 +1100,8 @@ def main():
 
     # 발주 분석
     df_analysis = analyze_procurement_needs(df_inventory, df_safety)
+    # df_analysis를 session_state에 저장 (일일 리포트용)
+    st.session_state.df_analysis = df_analysis
 
     # 사이드바 - 필터
     st.sidebar.header("🔍 필터")
@@ -1059,6 +1162,16 @@ def show_dashboard(dashboard_data, df_analysis):
             </p>
         </div>
     """, unsafe_allow_html=True)
+
+    # 알림 배너 (긴급 상황 시)
+    risk_count = len(df_analysis[df_analysis['충분도상태'].str.contains('위험', na=False)])
+    order_needed_count = len(df_analysis[(df_analysis['발주필요'] == True) & (df_analysis['권장발주량'] > 0)])
+
+    if risk_count > 0 or order_needed_count >= 10:
+        if risk_count > 0:
+            st.error(f"🚨 **긴급 알림**: {risk_count}개 품목이 재고 위험 상태입니다! (재고소진일 ≤7일)")
+        if order_needed_count >= 10:
+            st.warning(f"⚠️ **발주 알림**: {order_needed_count}개 품목이 발주가 필요합니다.")
 
     # 주요 지표 - 카드 스타일
     col1, col2, col3, col4, col5 = st.columns(5, gap="medium")
@@ -1264,6 +1377,23 @@ def show_dashboard(dashboard_data, df_analysis):
                         'timestamp': datetime.now(),
                         'product_name': row['제품명']
                     }
+
+                    # PSI 파일에 발주 기록
+                    if 'psi_file_path' in st.session_state:
+                        order_data = {
+                            'SKU코드': sku_code,
+                            '제품명': row['제품명'],
+                            'ABC등급': row.get('ABC등급', 'N/A'),
+                            'XYZ등급': row.get('XYZ등급', 'N/A'),
+                            '현재고': row['현재고'],
+                            '발주량': order_qty,
+                            '매입원가': row.get('매입원가', 0),
+                            '재고소진일': row.get('재고소진일', 0),
+                            '일평균판매': row.get('일평균판매', 0),
+                            '리드타임': row.get('리드타임', 30)
+                        }
+                        record_order_to_excel(st.session_state.psi_file_path, order_data)
+
                     st.success(f"✅ {sku_code} - {order_qty:,}개 발주 요청됨")
                     st.rerun()
 
@@ -1294,6 +1424,22 @@ def show_dashboard(dashboard_data, df_analysis):
                                 'product_name': row_data['제품명']
                             }
                             total_qty += order_qty
+
+                            # PSI 파일에 발주 기록
+                            if 'psi_file_path' in st.session_state:
+                                order_data = {
+                                    'SKU코드': sku,
+                                    '제품명': row_data['제품명'],
+                                    'ABC등급': row_data.get('ABC등급', 'N/A'),
+                                    'XYZ등급': row_data.get('XYZ등급', 'N/A'),
+                                    '현재고': row_data['현재고'],
+                                    '발주량': order_qty,
+                                    '매입원가': row_data.get('매입원가', 0),
+                                    '재고소진일': row_data.get('재고소진일', 0),
+                                    '일평균판매': row_data.get('일평균판매', 0),
+                                    '리드타임': row_data.get('리드타임', 30)
+                                }
+                                record_order_to_excel(st.session_state.psi_file_path, order_data)
 
                     st.success(f"✅ {len(st.session_state.selected_items)}개 품목 발주 완료! (총 {total_qty:,}개)")
                     st.session_state.selected_items = set()
@@ -1428,6 +1574,10 @@ def show_procurement(df_filtered):
             발주량 = (발주점 - 현재고) + 1주 판매량
             ```
             부족분 + 안전 마진(1주치)
+
+            **MOQ (최소발주량) 적용**:
+            - MOQ가 설정된 경우, 발주량을 MOQ의 배수로 자동 조정
+            - MOQ가 없는 경우, 권장 발주량 그대로 사용
             """)
 
         with col2:
@@ -1558,6 +1708,9 @@ def show_procurement(df_filtered):
                         st.write(f"**현재고**: {row['현재고']:,.0f}개")
                         st.write(f"**안전재고**: {row['안전재고']:,.0f}개")
                         st.write(f"**발주점**: {row['발주점']:,.0f}개")
+                        # MOQ 표시 (있는 경우에만)
+                        if 'MOQ' in row and row['MOQ'] and row['MOQ'] > 0:
+                            st.write(f"**MOQ**: {row['MOQ']:,.0f}개 (최소발주량)")
 
                     # 발주량 입력을 먼저 처리 (col3)
                     with col3:
@@ -1603,7 +1756,16 @@ def show_procurement(df_filtered):
                 selected_items.append({
                     'SKU코드': row['SKU코드'],
                     '제품명': row['제품명'],
-                    '발주량': st.session_state.custom_quantities.get(sku_code, int(row['권장발주량']))
+                    '발주량': st.session_state.custom_quantities.get(sku_code, int(row['권장발주량'])),
+                    'ABC등급': row.get('ABC등급', 'N/A'),
+                    'XYZ등급': row.get('XYZ등급', 'N/A'),
+                    '현재고': row['현재고'],
+                    '매입원가': row.get('매입원가', 0),
+                    '재고소진일': row.get('재고소진일', 0),
+                    '일평균판매': row.get('일평균판매', 0),
+                    '리드타임': row.get('리드타임', 30),
+                    'MOQ': row.get('MOQ'),
+                    '공급업체': row.get('공급업체', '미지정')
                 })
 
         # 전체 선택/해제 플래그 초기화
@@ -1640,27 +1802,32 @@ def show_procurement(df_filtered):
                 ws['A2'] = f'발주일: {datetime.now().strftime("%Y-%m-%d %H:%M")}'
 
                 # 컬럼 헤더
-                headers = ['No', 'SKU코드', '제품명', '발주량', '비고']
+                headers = ['No', 'SKU코드', '제품명', '공급업체', '발주량', 'MOQ', '비고']
                 for col_idx, header in enumerate(headers, start=1):
                     cell = ws.cell(row=4, column=col_idx, value=header)
                     cell.font = Font(bold=True)
                     cell.fill = PatternFill(start_color="CCE5FF", end_color="CCE5FF", fill_type="solid")
                     cell.alignment = Alignment(horizontal='center')
 
-                # 데이터
-                for row_idx, item in enumerate(selected_items, start=5):
+                # 데이터 (공급업체별로 정렬)
+                sorted_items = sorted(selected_items, key=lambda x: x.get('공급업체', '미지정'))
+                for row_idx, item in enumerate(sorted_items, start=5):
                     ws.cell(row=row_idx, column=1, value=row_idx-4)
                     ws.cell(row=row_idx, column=2, value=item['SKU코드'])
                     ws.cell(row=row_idx, column=3, value=item['제품명'])
-                    ws.cell(row=row_idx, column=4, value=item['발주량'])
-                    ws.cell(row=row_idx, column=5, value='')
+                    ws.cell(row=row_idx, column=4, value=item.get('공급업체', '미지정'))
+                    ws.cell(row=row_idx, column=5, value=item['발주량'])
+                    ws.cell(row=row_idx, column=6, value=item.get('MOQ', ''))
+                    ws.cell(row=row_idx, column=7, value='')
 
                 # 컬럼 너비 조정
                 ws.column_dimensions['A'].width = 5
-                ws.column_dimensions['B'].width = 20
-                ws.column_dimensions['C'].width = 40
-                ws.column_dimensions['D'].width = 12
-                ws.column_dimensions['E'].width = 20
+                ws.column_dimensions['B'].width = 18
+                ws.column_dimensions['C'].width = 35
+                ws.column_dimensions['D'].width = 20
+                ws.column_dimensions['E'].width = 12
+                ws.column_dimensions['F'].width = 10
+                ws.column_dimensions['G'].width = 15
 
                 # 바이트로 저장
                 buffer = BytesIO()
@@ -1707,6 +1874,22 @@ def show_procurement(df_filtered):
                             'product_name': item['제품명']
                         }
                         total_qty += qty
+
+                        # PSI 파일에 발주 기록
+                        if 'psi_file_path' in st.session_state:
+                            order_data = {
+                                'SKU코드': sku,
+                                '제품명': item['제품명'],
+                                'ABC등급': item.get('ABC등급', 'N/A'),
+                                'XYZ등급': item.get('XYZ등급', 'N/A'),
+                                '현재고': item.get('현재고', 0),
+                                '발주량': qty,
+                                '매입원가': item.get('매입원가', 0),
+                                '재고소진일': item.get('재고소진일', 0),
+                                '일평균판매': item.get('일평균판매', 0),
+                                '리드타임': item.get('리드타임', 30)
+                            }
+                            record_order_to_excel(st.session_state.psi_file_path, order_data)
 
                     st.success(f"✅ 총 {len(selected_items)}개 품목, {total_qty:,}개 발주 완료!")
                     st.balloons()
@@ -2624,6 +2807,167 @@ def show_settings():
     st.subheader("리드타임 설정")
 
     default_leadtime = st.number_input("기본 리드타임 (일)", min_value=1, value=30, step=1)
+
+    st.markdown("---")
+
+    st.subheader("📥 PSI 파일 관리")
+
+    col_down, col_info = st.columns([1, 2])
+
+    with col_down:
+        # PSI 파일 다운로드
+        if 'psi_file_path' in st.session_state:
+            try:
+                with open(st.session_state.psi_file_path, 'rb') as f:
+                    psi_data = f.read()
+
+                file_name = os.path.basename(st.session_state.psi_file_path)
+                st.download_button(
+                    label="📥 PSI 파일 다운로드",
+                    data=psi_data,
+                    file_name=f"PSI_updated_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    type="primary",
+                    help="발주 기록이 포함된 최신 PSI 파일 다운로드"
+                )
+            except Exception as e:
+                st.error(f"❌ 파일 다운로드 오류: {str(e)}")
+        else:
+            st.info("ℹ️ PSI 파일을 먼저 로드하세요")
+
+    with col_info:
+        st.info("""
+        **📋 PSI 파일 다운로드/업로드**
+
+        - **다운로드**: 발주 기록이 포함된 최신 PSI 파일
+        - **업로드**: 좌측 사이드바에서 "파일 업로드" 선택
+        - **발주리스트**: 자동으로 기록됨
+        """)
+
+    st.markdown("---")
+
+    # 일일 리포트 다운로드
+    st.subheader("📊 일일 리포트")
+
+    col_report, col_info_report = st.columns([1, 2])
+
+    with col_report:
+        if st.button("📥 일일 리포트 다운로드", type="secondary", use_container_width=True):
+            # 일일 리포트 Excel 생성
+            if 'df_analysis' in st.session_state and st.session_state.df_analysis is not None:
+                from io import BytesIO
+                import openpyxl
+                from openpyxl.styles import Font, Alignment, PatternFill
+
+                wb = openpyxl.Workbook()
+
+                # 시트 1: 요약
+                ws_summary = wb.active
+                ws_summary.title = "일일요약"
+
+                ws_summary['A1'] = '📊 일일 재고 리포트'
+                ws_summary['A1'].font = Font(size=16, bold=True)
+                ws_summary['A2'] = f'생성일: {datetime.now().strftime("%Y-%m-%d %H:%M")}'
+
+                ws_summary['A4'] = '항목'
+                ws_summary['B4'] = '값'
+                for cell in [ws_summary['A4'], ws_summary['B4']]:
+                    cell.font = Font(bold=True)
+                    cell.fill = PatternFill(start_color="CCE5FF", end_color="CCE5FF", fill_type="solid")
+
+                df = st.session_state.df_analysis
+                row = 5
+                summary_data = [
+                    ('총 SKU 수', len(df)),
+                    ('재고 위험 품목 (≤7일)', len(df[df['재고소진일'] <= 7])),
+                    ('발주 필요 품목', len(df[df['발주필요'] == True])),
+                    ('과다 재고 품목', len(df[df['재고상태'] == '🔵 과잉'])),
+                    ('평균 재고소진일', f"{df[df['재고소진일'] < 999]['재고소진일'].mean():.1f}일"),
+                ]
+                for label, value in summary_data:
+                    ws_summary.cell(row, 1, label)
+                    ws_summary.cell(row, 2, value)
+                    row += 1
+
+                # 시트 2: 긴급 발주 품목
+                ws_urgent = wb.create_sheet("긴급발주품목")
+                urgent_items = df[df['재고소진일'] <= 7].sort_values('재고소진일')
+
+                headers = ['SKU코드', '제품명', 'ABC', 'XYZ', '현재고', '안전재고', '재고소진일', '권장발주량', '공급업체']
+                for col_idx, header in enumerate(headers, start=1):
+                    cell = ws_urgent.cell(1, col_idx, header)
+                    cell.font = Font(bold=True)
+                    cell.fill = PatternFill(start_color="FFE5E5", end_color="FFE5E5", fill_type="solid")
+
+                for row_idx, (_, item) in enumerate(urgent_items.iterrows(), start=2):
+                    ws_urgent.cell(row_idx, 1, item['SKU코드'])
+                    ws_urgent.cell(row_idx, 2, item['제품명'])
+                    ws_urgent.cell(row_idx, 3, item.get('ABC등급', ''))
+                    ws_urgent.cell(row_idx, 4, item.get('XYZ등급', ''))
+                    ws_urgent.cell(row_idx, 5, item['현재고'])
+                    ws_urgent.cell(row_idx, 6, item['안전재고'])
+                    ws_urgent.cell(row_idx, 7, item['재고소진일'])
+                    ws_urgent.cell(row_idx, 8, item.get('권장발주량', 0))
+                    ws_urgent.cell(row_idx, 9, item.get('공급업체', '미지정'))
+
+                # 시트 3: 발주 필요 품목
+                ws_order = wb.create_sheet("발주필요품목")
+                order_items = df[(df['발주필요'] == True) & (df['권장발주량'] > 0)].sort_values('현재고')
+
+                for col_idx, header in enumerate(headers, start=1):
+                    cell = ws_order.cell(1, col_idx, header)
+                    cell.font = Font(bold=True)
+                    cell.fill = PatternFill(start_color="FFF4E5", end_color="FFF4E5", fill_type="solid")
+
+                for row_idx, (_, item) in enumerate(order_items.iterrows(), start=2):
+                    ws_order.cell(row_idx, 1, item['SKU코드'])
+                    ws_order.cell(row_idx, 2, item['제품명'])
+                    ws_order.cell(row_idx, 3, item.get('ABC등급', ''))
+                    ws_order.cell(row_idx, 4, item.get('XYZ등급', ''))
+                    ws_order.cell(row_idx, 5, item['현재고'])
+                    ws_order.cell(row_idx, 6, item['안전재고'])
+                    ws_order.cell(row_idx, 7, item['재고소진일'])
+                    ws_order.cell(row_idx, 8, item.get('권장발주량', 0))
+                    ws_order.cell(row_idx, 9, item.get('공급업체', '미지정'))
+
+                # 컬럼 너비 자동 조정
+                for ws in [ws_summary, ws_urgent, ws_order]:
+                    for column in ws.columns:
+                        max_length = 0
+                        column_letter = column[0].column_letter
+                        for cell in column:
+                            try:
+                                if cell.value:
+                                    max_length = max(max_length, len(str(cell.value)))
+                            except:
+                                pass
+                        ws.column_dimensions[column_letter].width = min(max_length + 2, 50)
+
+                # 바이트로 저장
+                buffer = BytesIO()
+                wb.save(buffer)
+                buffer.seek(0)
+
+                st.download_button(
+                    label="📥 일일 리포트 다운로드",
+                    data=buffer,
+                    file_name=f"일일리포트_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    type="primary",
+                    key="daily_report_download"
+                )
+            else:
+                st.warning("⚠️ 데이터를 먼저 로드하세요")
+
+    with col_info_report:
+        st.info("""
+        **📋 일일 리포트 내용**
+
+        - **일일요약**: 전체 재고 현황 요약
+        - **긴급발주품목**: 재고소진일 ≤ 7일인 위험 품목
+        - **발주필요품목**: 발주점 이하 전체 품목 리스트
+        - **공급업체 정보 포함**
+        """)
 
     st.markdown("---")
 
