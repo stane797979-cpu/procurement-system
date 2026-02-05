@@ -1680,8 +1680,7 @@ def main():
                 ["마지막 업로드 파일", "파일 업로드"],
                 index=default_index,
                 label_visibility="collapsed",
-                horizontal=False,
-                key='file_option_radio'
+                horizontal=False
             )
 
     # 헤더
@@ -1741,9 +1740,8 @@ def main():
                 file_size = os.path.getsize(CURRENT_PSI_FILE)
                 st.sidebar.info(f"📁 저장 위치: {abs_save_path}\n📦 크기: {file_size} bytes")
 
-            # 업로드 완료 플래그 설정 및 라디오 버튼 강제 변경
+            # 업로드 완료 플래그 설정
             st.session_state.just_uploaded = True
-            st.session_state['file_option_radio'] = "마지막 업로드 파일"
 
             # 수식 캐시 생성 (Windows에서만 실행)
             import platform
