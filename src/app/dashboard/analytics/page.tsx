@@ -1,0 +1,136 @@
+import dynamic from "next/dynamic";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ABCXYZSummary } from "./_components/abc-xyz-summary";
+import { Card, CardContent } from "@/components/ui/card";
+import { Construction } from "lucide-react";
+import { getABCXYZAnalysis } from "@/server/actions/analytics";
+import type { ProductAnalysis } from "./_components/abc-xyz-table";
+
+const ABCXYZClient = dynamic(
+  () => import("./_components/abc-xyz-client").then((mod) => ({ default: mod.ABCXYZClient })),
+  {
+    loading: () => (
+      <div className="h-96 flex items-center justify-center text-slate-400">로딩 중...</div>
+    ),
+  }
+);
+
+const ABCXYZPolicyGuide = dynamic(
+  () =>
+    import("./_components/abc-xyz-policy-guide").then((mod) => ({
+      default: mod.ABCXYZPolicyGuide,
+    })),
+  {
+    loading: () => (
+      <div className="h-48 flex items-center justify-center text-slate-400">로딩 중...</div>
+    ),
+  }
+);
+
+const InventoryTurnover = dynamic(
+  () =>
+    import("./_components/inventory-turnover").then((mod) => ({ default: mod.InventoryTurnover })),
+  {
+    loading: () => (
+      <div className="h-96 flex items-center justify-center text-slate-400">로딩 중...</div>
+    ),
+  }
+);
+
+const SalesTrendChart = dynamic(
+  () =>
+    import("./_components/sales-trend-chart").then((mod) => ({ default: mod.SalesTrendChart })),
+  {
+    loading: () => (
+      <div className="h-96 flex items-center justify-center text-slate-400">로딩 중...</div>
+    ),
+  }
+);
+
+const DemandForecastChart = dynamic(
+  () =>
+    import("./_components/demand-forecast-chart").then((mod) => ({ default: mod.DemandForecastChart })),
+  {
+    loading: () => (
+      <div className="h-96 flex items-center justify-center text-slate-400">수요예측 분석 중...</div>
+    ),
+  }
+);
+
+export default async function AnalyticsPage() {
+  let products: ProductAnalysis[] = [];
+  let matrixData: { grade: string; count: number }[] = [];
+  let summary = {
+    aCount: 0,
+    aPercentage: 0,
+    bCount: 0,
+    bPercentage: 0,
+    cCount: 0,
+    cPercentage: 0,
+    period: "최근 6개월",
+  };
+
+  try {
+    const data = await getABCXYZAnalysis();
+    products = data.products;
+    matrixData = data.matrixData;
+    summary = data.summary;
+  } catch {
+    // 인증 실패 등 → 빈 데이터
+  }
+
+  const hasData = products.length > 0;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">재고 분석</h1>
+        <p className="mt-2 text-slate-500">
+          제품별 매출 기여도, 수요 변동성, 재고회전율을 분석하여 최적의 재고 관리 전략을 수립하세요
+        </p>
+      </div>
+
+      <Tabs defaultValue="abc-xyz" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="abc-xyz">ABC-XYZ 분석</TabsTrigger>
+          <TabsTrigger value="demand-forecast">수요예측</TabsTrigger>
+          <TabsTrigger value="turnover">재고회전율</TabsTrigger>
+          <TabsTrigger value="sales-trend">판매 추이</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="abc-xyz" className="space-y-6">
+          {hasData ? (
+            <>
+              <ABCXYZSummary {...summary} />
+              <ABCXYZClient matrixData={matrixData} products={products} />
+              <ABCXYZPolicyGuide />
+            </>
+          ) : (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                <Construction className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-semibold text-muted-foreground">분석 데이터 없음</h3>
+                <p className="mt-2 max-w-md text-sm text-muted-foreground/70">
+                  제품을 등록하고 판매 데이터를 입력하면 ABC-XYZ 분석 결과가 표시됩니다. 설정
+                  &gt; 데이터 관리에서 Excel로 데이터를 일괄 등록할 수 있습니다.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="demand-forecast">
+          <DemandForecastChart />
+        </TabsContent>
+
+        <TabsContent value="turnover">
+          <InventoryTurnover />
+        </TabsContent>
+
+        <TabsContent value="sales-trend">
+          <SalesTrendChart />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 243.4 75.4% 58.6%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 40%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 243.4 75.4% 58.6%;
+    --radius: 0.5rem;
+  }
+}
+
+html {
+  font-size: 17px;
+}
+
+body {
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  font-family: var(--font-pretendard), Pretendard, system-ui, sans-serif;
+}
+
+/* ===== 전역 가독성 강화 (shadcn/ui 기본값보다 진하게) ===== */
+
+/* 연한 회색 텍스트를 진하게 */
+.text-slate-300 { color: #64748b !important; }
+.text-slate-400 { color: #475569 !important; }
+.text-slate-500 { color: #334155 !important; }
+.text-gray-400 { color: #475569 !important; }
+.text-gray-500 { color: #334155 !important; }
+
+/* 글씨 크기 최소 보장 */
+.text-xs {
+  font-size: 0.8125rem !important;
+  line-height: 1.25rem !important;
+}
+.text-sm {
+  font-size: 0.9375rem !important;
+  line-height: 1.375rem !important;
+}
+
+/* 테이블 헤더 진하게 */
+th {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+}
+
+/* 테이블 셀 기본 색상 진하게 */
+td {
+  color: #1e293b !important;
+}
+
+/* placeholder 텍스트 */
+::placeholder {
+  color: #64748b !important;
+}
+
+/* Tabs 트리거 진하게 */
+[role="tab"] {
+  color: #475569 !important;
+  font-weight: 500 !important;
+}
+[role="tab"][data-state="active"] {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+}
+
+/* 버튼 텍스트 크기 보장 */
+button {
+  font-size: inherit;
+}

@@ -1,0 +1,230 @@
+/**
+ * 캐시 통합 서비스
+ * 재고, 예측, KPI 등 조직별 데이터 캐싱
+ */
+
+import {
+  getCached,
+  setCached,
+  delCached,
+  delCachedByPattern,
+  redis,
+} from '@/lib/redis'
+
+/**
+ * 캐시 키 생성 헬퍼
+ */
+export const cacheKeys = {
+  // 재고 데이터
+  inventory: (orgId: string) => `inventory:${orgId}`,
+  inventoryItem: (orgId: string, productId: string) =>
+    `inventory:${orgId}:${productId}`,
+  inventoryStatus: (orgId: string) => `inventory-status:${orgId}`,
+
+  // 발주 데이터
+  purchaseOrders: (orgId: string) => `purchase-orders:${orgId}`,
+  purchaseOrder: (orgId: string, orderId: string) =>
+    `purchase-order:${orgId}:${orderId}`,
+
+  // 재고 분석
+  abcAnalysis: (orgId: string) => `abc-analysis:${orgId}`,
+  xyzAnalysis: (orgId: string) => `xyz-analysis:${orgId}`,
+  inventoryTurnover: (orgId: string) => `inventory-turnover:${orgId}`,
+
+  // KPI 대시보드
+  kpis: (orgId: string) => `kpis:${orgId}`,
+  kpiCard: (orgId: string, metricType: string) =>
+    `kpi:${orgId}:${metricType}`,
+
+  // 수요 예측
+  forecast: (orgId: string, productId: string) =>
+    `forecast:${orgId}:${productId}`,
+
+  // 발주 추천
+  orderRecommendations: (orgId: string) => `order-recommendations:${orgId}`,
+
+  // Rate Limiting
+  rateLimit: (identifier: string) => `rate-limit:${identifier}`,
+} as const
+
+/**
+ * 재고 데이터 캐시 조회
+ */
+export async function getCachedInventory(orgId: string) {
+  return getCached<unknown>(cacheKeys.inventory(orgId))
+}
+
+/**
+ * 재고 데이터 캐시 저장 (TTL: 5분)
+ */
+export async function cacheInventory(
+  orgId: string,
+  data: unknown,
+  ttlSeconds: number = 300
+) {
+  return setCached(cacheKeys.inventory(orgId), data, ttlSeconds)
+}
+
+/**
+ * 특정 제품 재고 캐시 조회
+ */
+export async function getCachedInventoryItem(
+  orgId: string,
+  productId: string
+) {
+  return getCached<unknown>(cacheKeys.inventoryItem(orgId, productId))
+}
+
+/**
+ * 특정 제품 재고 캐시 저장
+ */
+export async function cacheInventoryItem(
+  orgId: string,
+  productId: string,
+  data: unknown,
+  ttlSeconds: number = 300
+) {
+  return setCached(
+    cacheKeys.inventoryItem(orgId, productId),
+    data,
+    ttlSeconds
+  )
+}
+
+/**
+ * 조직의 모든 재고 캐시 무효화
+ */
+export async function invalidateInventoryCache(orgId: string) {
+  return delCachedByPattern(`inventory:${orgId}:*`)
+}
+
+/**
+ * ABC/XYZ 분석 캐시 조회
+ */
+export async function getCachedABCAnalysis(orgId: string) {
+  return getCached<unknown>(cacheKeys.abcAnalysis(orgId))
+}
+
+/**
+ * ABC 분석 캐시 저장 (TTL: 24시간)
+ */
+export async function cacheABCAnalysis(
+  orgId: string,
+  data: unknown,
+  ttlSeconds: number = 86400
+) {
+  return setCached(cacheKeys.abcAnalysis(orgId), data, ttlSeconds)
+}
+
+/**
+ * KPI 데이터 캐시 조회
+ */
+export async function getCachedKPIs(orgId: string) {
+  return getCached<unknown>(cacheKeys.kpis(orgId))
+}
+
+/**
+ * KPI 데이터 캐시 저장 (TTL: 1시간)
+ */
+export async function cacheKPIs(
+  orgId: string,
+  data: unknown,
+  ttlSeconds: number = 3600
+) {
+  return setCached(cacheKeys.kpis(orgId), data, ttlSeconds)
+}
+
+/**
+ * KPI 캐시 무효화
+ */
+export async function invalidateKPICache(orgId: string) {
+  return delCachedByPattern(`kpi:${orgId}:*`)
+}
+
+/**
+ * 발주 추천 캐시 조회
+ */
+export async function getCachedOrderRecommendations(orgId: string) {
+  return getCached<unknown>(cacheKeys.orderRecommendations(orgId))
+}
+
+/**
+ * 발주 추천 캐시 저장 (TTL: 15분)
+ */
+export async function cacheOrderRecommendations(
+  orgId: string,
+  data: unknown,
+  ttlSeconds: number = 900
+) {
+  return setCached(
+    cacheKeys.orderRecommendations(orgId),
+    data,
+    ttlSeconds
+  )
+}
+
+/**
+ * 수요 예측 캐시 조회
+ */
+export async function getCachedForecast(
+  orgId: string,
+  productId: string
+) {
+  return getCached<unknown>(cacheKeys.forecast(orgId, productId))
+}
+
+/**
+ * 수요 예측 캐시 저장 (TTL: 1시간)
+ */
+export async function cacheForecast(
+  orgId: string,
+  productId: string,
+  data: unknown,
+  ttlSeconds: number = 3600
+) {
+  return setCached(
+    cacheKeys.forecast(orgId, productId),
+    data,
+    ttlSeconds
+  )
+}
+
+/**
+ * 조직의 모든 예측 캐시 무효화
+ */
+export async function invalidateForecastCache(orgId: string) {
+  return delCachedByPattern(`forecast:${orgId}:*`)
+}
+
+/**
+ * Rate Limiting 체크 (기본: 100 req/hour)
+ */
+export async function checkUserRateLimit(userId: string) {
+  const { allowed, remaining, resetAt } = await redis.checkRateLimit(
+    cacheKeys.rateLimit(`user:${userId}`),
+    100,
+    3600
+  )
+
+  return { allowed, remaining, resetAt }
+}
+
+/**
+ * IP 기반 Rate Limiting 체크 (기본: 1000 req/hour)
+ */
+export async function checkIPRateLimit(ip: string) {
+  const { allowed, remaining, resetAt } = await redis.checkRateLimit(
+    cacheKeys.rateLimit(`ip:${ip}`),
+    1000,
+    3600
+  )
+
+  return { allowed, remaining, resetAt }
+}
+
+/**
+ * 조직 전체 캐시 무효화
+ */
+export async function invalidateOrgCache(orgId: string) {
+  return delCachedByPattern(`*:${orgId}:*`)
+}

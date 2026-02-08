@@ -1,39 +1,65 @@
-# Excel 데이터 파일 (절대 커밋 안함)
-*.xlsx
-*.xls
-current_psi.xlsx
-PSI_*.xlsx
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
 
-# 로그 파일
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage/
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
+nul
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 logs/
 *.log
 
-# Python 캐시
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Drizzle
+drizzle/meta/
+
+# Excel/데이터 파일 (절대 커밋 안함)
+*.xlsx
+*.xls
+
+# Legacy (Old 폴더 내 Python 관련)
+Old/
 __pycache__/
 *.py[cod]
 
-# 환경 설정
-.env
-
-# 시스템 파일
-.DS_Store
-ngrok.exe
-nul
-
-# 스크린샷
+# Misc
 screenshots/
-*.png
-
-# 문서 파일
 *.pptx
-*.html
-
-# 임시 스크립트
-test_*.py
-debug_*.py
-run_*.py
-setup_*.py
-ngrok_*.py
-make_package.py
-system_check.py
-daily_*.py

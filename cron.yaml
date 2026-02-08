@@ -1,0 +1,94 @@
+# Railway Cron Jobs 설정
+#
+# Railway에서는 별도의 크론 서비스를 생성하여 HTTP 요청으로 크론잡을 실행합니다.
+# 각 크론잭은 Railway의 Cron Trigger를 사용하여 정의된 스케줄에 따라 실행됩니다.
+#
+# 설정 방법:
+# 1. Railway 대시보드에서 "New Service" → "Cron" 선택
+# 2. 각 크론잡에 대해 아래 설정 입력
+# 3. 환경변수 CRON_SECRET 설정 (Railway에서 생성한 서비스에 추가)
+
+# ============================================
+# 자동 발주 크론잡
+# ============================================
+# Name: Auto Reorder
+# Schedule: 0 0 * * * (매일 00:00 UTC = 09:00 KST)
+# Command: curl -X GET "$NEXT_PUBLIC_SITE_URL/api/cron/auto-reorder?secret=$CRON_SECRET"
+#
+# 설명:
+# - 모든 조직의 재고를 확인하여 발주점 이하 제품을 자동으로 발주합니다
+# - 발주 스코어 60점 이상 제품만 처리
+# - 공급자별로 발주서를 생성합니다
+
+# ============================================
+# 재고 상태 점검 크론잡
+# ============================================
+# Name: Inventory Check
+# Schedule: 0 */6 * * * (매 6시간마다: 00:00, 06:00, 12:00, 18:00 UTC)
+# Command: curl -X GET "$NEXT_PUBLIC_SITE_URL/api/cron/inventory-check?secret=$CRON_SECRET"
+#
+# 설명:
+# - 모든 조직의 재고 상태를 점검합니다
+# - 품절/위험/부족 상태 제품에 대해 알림을 생성합니다
+# - 과다/과잉 재고에 대해서도 알림을 생성합니다
+# - 중복 알림 방지: 같은 알림이 6시간 내에 생성된 경우 스킵
+
+# ============================================
+# ABC-XYZ 등급 갱신 크론잡
+# ============================================
+# Name: Grade Refresh
+# Schedule: 30 0 1 * * (매월 1일 00:30 UTC = 09:30 KST)
+# Command: curl -X GET "$NEXT_PUBLIC_SITE_URL/api/cron/grade-refresh?secret=$CRON_SECRET"
+#
+# 설명:
+# - 모든 조직의 제품 ABC-XYZ 등급을 재계산합니다
+# - 판매 이력 3개월 미만 제품은 신제품(NEW)으로 태그합니다
+# - 판매 이력 3개월 이상 제품은 최근 6개월 판매 데이터로 등급을 부여합니다
+
+# ============================================
+# Railway Cron 서비스 생성 가이드
+# ============================================
+#
+# 1. Railway 대시보드 접속
+#    https://railway.app/
+#
+# 2. 프로젝트 선택 후 "New" → "Cron" 클릭
+#
+# 3. 자동 발주 크론잡 생성:
+#    - Name: Auto Reorder
+#    - Schedule: 0 0 * * * (매일 자정 UTC)
+#    - Command: curl -X GET "$NEXT_PUBLIC_SITE_URL/api/cron/auto-reorder?secret=$CRON_SECRET"
+#
+# 4. 재고 점검 크론잡 생성:
+#    - Name: Inventory Check
+#    - Schedule: 0 */6 * * * (6시간마다)
+#    - Command: curl -X GET "$NEXT_PUBLIC_SITE_URL/api/cron/inventory-check?secret=$CRON_SECRET"
+#
+# 5. 환경변수 설정:
+#    Railway 프로젝트 Settings → Variables에서:
+#    - CRON_SECRET: 랜덤 문자열 (예: openssl rand -base64 32)
+#    - NEXT_PUBLIC_SITE_URL: 배포된 도메인 (예: https://yourdomain.com)
+#
+# 6. 주의사항:
+#    - CRON_SECRET은 반드시 안전하게 보관
+#    - UTC 기준으로 스케줄 설정 (한국 시간 = UTC + 9시간)
+#    - Railway Cron은 최대 1분 단위까지 지원
+#
+# 7. 모니터링:
+#    - Railway 대시보드에서 크론 실행 로그 확인 가능
+#    - 실패 시 자동 재시도 (restartPolicyMaxRetries 설정)
+#
+# ============================================
+# Cron 스케줄 형식 (Cron Expression)
+# ============================================
+#
+# Format: [분] [시] [일] [월] [요일]
+#
+# 예시:
+# - 0 0 * * *     : 매일 자정 (00:00)
+# - 0 */6 * * *   : 6시간마다 (00:00, 06:00, 12:00, 18:00)
+# - 0 9 * * *     : 매일 09:00
+# - 0 0 * * 0     : 매주 일요일 자정
+# - 0 0 1 * *     : 매월 1일 자정
+#
+# 참고: https://crontab.guru/
